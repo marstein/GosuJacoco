@@ -29,7 +29,20 @@
     <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
-  <build>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.report</artifactId>
+        </dependency>
+    </dependencies>
+
+
+    <build>
     <sourceDirectory>src</sourceDirectory>
 
     <plugins>

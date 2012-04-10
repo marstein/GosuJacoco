@@ -135,6 +135,7 @@
     <asm.version>3.3.1</asm.version>
     <ant.version>1.7.0</ant.version>
     <junit.version>4.8.2</junit.version>
+    <gosu.version>0.9-10</gosu.version>
 
     <!-- ================== -->
     <!-- For Sonar analysis -->
@@ -555,6 +556,7 @@
                   </not>
                 </fileset>
                 <pathconvert property="missing" refid="missinglicense.fileset"/>
+<!--
                 <fail message="Invalid license info in: ${missing}">
                   <condition>
                     <not>
@@ -562,6 +564,7 @@
                     </not>
                   </condition>
                 </fail>
+-->
               </target>
             </configuration>
           </execution>
@@ -801,6 +804,18 @@
           <layout>p2</layout>
           <url>http://download.eclipse.org/releases/helios</url>
         </repository>
+
+
+
+          <repository>
+              <id>Guidewire-nexus</id>
+              <name>Guidewire Nexus Repository</name>
+              <url>http://nexus:8081/nexus/content/repositories/gosu-lang.org-releases/</url>
+          </repository>
+
+
+
+
       </repositories>
     </profile>
   </profiles>

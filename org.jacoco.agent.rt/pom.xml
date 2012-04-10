@@ -36,6 +36,14 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>org.jacoco.core</artifactId>
     </dependency>
+
+      <dependency>
+          <groupId>org.gosu-lang.gosu</groupId>
+          <artifactId>gosu-core-api</artifactId>
+          <version>${gosu.version}</version>
+      </dependency>
+
+
   </dependencies>
 
   <build>

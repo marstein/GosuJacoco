@@ -7,128 +7,155 @@
  *
  * Contributors:
  *    Marc R. Hoffmann - initial API and implementation
- *    
+ *
  *******************************************************************************/
 package org.jacoco.agent.rt;
 
-import static java.lang.String.format;
+import org.jacoco.core.instr.Instrumenter;
+import org.jacoco.core.runtime.AgentOptions;
+import org.jacoco.core.runtime.IExecutionDataAccessorGenerator;
+import org.jacoco.core.runtime.WildcardMatcher;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.logging.Logger;
 
-import org.jacoco.core.instr.Instrumenter;
-import org.jacoco.core.runtime.AgentOptions;
-import org.jacoco.core.runtime.IRuntime;
-import org.jacoco.core.runtime.WildcardMatcher;
+import static java.lang.String.format;
 
 /**
  * Class file transformer to instrument classes for code coverage analysis.
  */
 public class CoverageTransformer implements ClassFileTransformer {
 
-	private static final String AGENT_PREFIX;
+  private static final String AGENT_PREFIX;
 
-	static {
-		final String name = CoverageTransformer.class.getName();
-		AGENT_PREFIX = toVMName(name.substring(0, name.lastIndexOf('.')));
-	}
+  private static Logger log = Logger.getLogger("transformer");
 
-	private final IRuntime runtime;
+  static {
+    final String name = CoverageTransformer.class.getName();
+    AGENT_PREFIX = toVMName(name.substring(0, name.lastIndexOf('.')));
+  }
 
-	private final Instrumenter instrumenter;
+  private final IExceptionLogger logger;
+  private final Instrumenter instrumenter;
+  private final WildcardMatcher includes;
+  private final WildcardMatcher excludes;
+  private final WildcardMatcher exclClassloader;
+  private final File classDumpDir;
 
-	private final IExceptionLogger logger;
+  /**
+   * New transformer with the given delegates.
+   *
+   * @param generator generator for runtime specific access code
+   * @param options   configuration options for the generator
+   * @param logger    logger for exceptions during instrumentation
+   */
+  public CoverageTransformer(final IExecutionDataAccessorGenerator generator,
+                             final AgentOptions options, final IExceptionLogger logger) {
+    this.instrumenter = new Instrumenter(generator);
+    this.logger = logger;
+    // Class names will be reported in VM notation:
+    includes = new WildcardMatcher(toWildcard(toVMName(options.getIncludes())));
+    excludes = new WildcardMatcher(toWildcard(toVMName(options.getExcludes())));
+    exclClassloader = new WildcardMatcher(toWildcard(options.getExclClassloader()));
+    classDumpDir = options.getClassDumpDirectory();
+  }
 
-	private final WildcardMatcher includes;
+  public byte[] transform(final ClassLoader loader, final String classname,
+                          final Class<?> classBeingRedefined,
+                          final ProtectionDomain protectionDomain,
+                          final byte[] classfileBuffer) throws IllegalClassFormatException {
 
-	private final WildcardMatcher excludes;
+    if (!filter(loader, classname)) {
+      return null;
+    }
 
-	private final WildcardMatcher exclClassloader;
+    log.info("Transforming class " + classname + " size " + classfileBuffer.length + " bytes filtered=" + filter(loader, classname));
+    possiblyDump(classname, ".class", classfileBuffer, isGosuClass(classBeingRedefined));
 
-	/**
-	 * New transformer with the given delegates.
-	 * 
-	 * @param runtime
-	 *            coverage runtime
-	 * @param options
-	 *            configuration options for the generator
-	 * @param logger
-	 *            logger for exceptions during instrumentation
-	 */
-	public CoverageTransformer(final IRuntime runtime,
-			final AgentOptions options, final IExceptionLogger logger) {
-		this.runtime = runtime;
-		this.instrumenter = new Instrumenter(runtime);
-		this.logger = logger;
-		// Class names will be reported in VM notation:
-		includes = new WildcardMatcher(
-				toWildcard(toVMName(options.getIncludes())));
-		excludes = new WildcardMatcher(
-				toWildcard(toVMName(options.getExcludes())));
-		exclClassloader = new WildcardMatcher(
-				toWildcard(options.getExclClassloader()));
-	}
+    try {
+      return instrumenter.instrument(classfileBuffer);
+    } catch (final Throwable t) {
+      final String msg = "Error while instrumenting class %s.";
+      final IllegalClassFormatException ex = new IllegalClassFormatException(format(msg, classname));
+      // Report this, as the exception is ignored by the JVM:
+      logger.logExeption(ex);
+      throw (IllegalClassFormatException) ex.initCause(t);
+    }
+  }
 
-	public byte[] transform(final ClassLoader loader, final String classname,
-			final Class<?> classBeingRedefined,
-			final ProtectionDomain protectionDomain,
-			final byte[] classfileBuffer) throws IllegalClassFormatException {
+  // Check if the class is dynamically generated without a class file.
+  private boolean isGosuClass(Class<?> classBeingRedefined) {
+    if (classBeingRedefined == null) return false;
+    for(java.lang.Class interfaceClass: classBeingRedefined.getInterfaces()) {
+      if(interfaceClass.getName().contains("IGosu")) return true;
+    }
+    return false;
+  }
 
-		if (!filter(loader, classname)) {
-			return null;
-		}
 
-		try {
-			if (classBeingRedefined != null) {
-				// For redefined classes we must clear the execution data
-				// reference as probes might have changed.
-				runtime.disconnect(classBeingRedefined);
-			}
-			return instrumenter.instrument(classfileBuffer);
-		} catch (final Exception ex) {
-			// Report this, as the exception is ignored by the JVM:
-			logger.logExeption(ex);
-			final IllegalClassFormatException wrapper = new IllegalClassFormatException(
-					format("Error while instrumenting class %s.", classname));
-			throw (IllegalClassFormatException) wrapper.initCause(ex);
-		}
-	}
+  /**
+   * Dump bytecode if configured with location to write to.
+   * TODO: do not dump if class file already exists.
+   */
+  private void possiblyDump(String name, String suffix, byte[] bytecode, boolean gosuClass) {
+    if (classDumpDir != null && gosuClass) {
+      File file = new File(classDumpDir, name + suffix);
+      file.getParentFile().mkdirs();
+      OutputStream out = null;
+      try {
+        out = new FileOutputStream(file);
+        out.write(bytecode);
+      } catch (IOException e) {
+        logger.logExeption(e);
+      } finally {
+        if (out != null) {
+          try {
+            out.close();
+          } catch (IOException e) {
+            logger.logExeption(e);
+          }
+        }
+      }
+    }
+  }
 
-	/**
-	 * Checks whether this class should be instrumented.
-	 * 
-	 * @param loader
-	 *            loader for the class
-	 * @param classname
-	 *            VM name of the class to check
-	 * @return <code>true</code> if the class should be instrumented
-	 */
-	protected boolean filter(final ClassLoader loader, final String classname) {
-		// Don't instrument classes of the bootstrap loader:
-		return loader != null &&
 
-		!classname.startsWith(AGENT_PREFIX) &&
+  /**
+   * Checks whether this class should be instrumented.
+   *
+   * @param loader    loader for the class
+   * @param classname VM name of the class to check
+   * @return <code>true</code> if the class should be instrumented
+   */
+  protected boolean filter(final ClassLoader loader, final String classname) {
+    // Don't instrument classes of the bootstrap loader:
+    return loader != null &&
+            !classname.startsWith(AGENT_PREFIX) &&
+            // TODO: ignore blocks
+            !classname.contains("$block_") &&
+            !exclClassloader.matches(loader.getClass().getName()) &&
+            includes.matches(classname) &&
+            !excludes.matches(classname);
+  }
 
-		!exclClassloader.matches(loader.getClass().getName()) &&
+  private String toWildcard(final String src) {
+    if (src.indexOf('|') != -1) {
+      final IllegalArgumentException ex = new IllegalArgumentException(
+              "Usage of '|' as a list separator for JaCoCo agent options is deprecated and will not work in future versions - use ':' instead.");
+      logger.logExeption(ex);
+      return src.replace('|', ':');
+    }
+    return src;
+  }
 
-		includes.matches(classname) &&
-
-		!excludes.matches(classname);
-	}
-
-	private String toWildcard(final String src) {
-		if (src.indexOf('|') != -1) {
-			final IllegalArgumentException ex = new IllegalArgumentException(
-					"Usage of '|' as a list separator for JaCoCo agent options is deprecated and will not work in future versions - use ':' instead.");
-			logger.logExeption(ex);
-			return src.replace('|', ':');
-		}
-		return src;
-	}
-
-	private static String toVMName(final String srcName) {
-		return srcName.replace('.', '/');
-	}
-
+  private static String toVMName(final String srcName) {
+    return srcName.replace('.', '/');
+  }
 }
