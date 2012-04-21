@@ -32,6 +32,8 @@
     <module>../org.jacoco.agent.test</module>
     <module>../org.jacoco.ant.test</module>
     <module>../jacoco-maven-plugin.test</module>
+
+    <module>../gw.coverage.test</module>
   </modules>
 
   <properties>

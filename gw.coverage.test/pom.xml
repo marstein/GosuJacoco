@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.tests</artifactId>
+        <version>0.5.7-SNAPSHOT</version>
+        <relativePath>../org.jacoco.tests</relativePath>
+    </parent>
+
+    <artifactId>gw.coverage.test</artifactId>
+    <packaging>eclipse-test-plugin</packaging>
+
+    <name>Guidewire JaCoCo :: Test :: Coverage</name>
+    <description>JaCoCo Coverage tests for suite coverage metrics</description>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.includes>org.jacoco.core.*</jacoco.includes>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.report</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>gw.coverage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+    </dependencies>
+</project>
