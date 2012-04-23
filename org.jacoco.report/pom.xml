@@ -25,7 +25,12 @@
   <name>JaCoCo :: Report</name>
   <description>JaCoCo Reporting</description>
 
-  <!-- Note that Tycho doesn't use those dependencies, but we need to declare them for consumers -->
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.includes>org.jacoco.core.*</jacoco.includes>
+    </properties>
+
+    <!-- Note that Tycho doesn't use those dependencies, but we need to declare them for consumers -->
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Guidewire JaCoCo Coverage
+Bundle-SymbolicName: gw.coverage
+Bundle-Version: 0.5.7.qualifier
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Vendor: Guidewire Inc
+Require-Bundle: org.jacoco.core,
+ org.jacoco.report,
+ org.objectweb.asm;bundle-version="[3.2.0,4.0.0)"
+Export-Package: gw.coverage,
+ org.jacoco.report,
+ org.jacoco.report.csv,
+ org.jacoco.report.html,
+ org.jacoco.report.xml
