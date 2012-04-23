@@ -62,12 +62,12 @@ public class SQLFormatter {
    * @return visitor to emit the report data to
    * @throws java.io.IOException in case of problems with the output stream
    */
-  public IReportVisitor createVisitor(final Connection connection, String suiteName, Date suiteRunDate)
+  public IReportVisitor createVisitor(final Connection connection, final String branchName, final String changelist, String suiteName, Date suiteRunDate)
           throws IOException {
     final ClassRowWriter rowWriter = new ClassRowWriter(connection, languageNames);
     class Visitor extends SuiteGroupHandler implements IReportVisitor {
-      Visitor(String suiteName, Date suiteRunDate) {
-        super(rowWriter, suiteName, suiteName, suiteRunDate);
+      Visitor(String branchName, String changelist, String suiteName, Date suiteRunDate) {
+        super(rowWriter, suiteName, branchName, changelist, suiteName, suiteRunDate);
       }
 
       public void visitInfo(final List<SessionInfo> sessionInfos,
@@ -79,6 +79,6 @@ public class SQLFormatter {
       public void visitEnd() throws IOException {
       }
     }
-    return new Visitor(suiteName, suiteRunDate);
+    return new Visitor(branchName, changelist, suiteName, suiteRunDate);
   }
 }

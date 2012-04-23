@@ -61,21 +61,26 @@ class ClassRowWriter {
   /**
    * Writes the class summary information as a row.
    *
-   * @param groupName   name of the group
+   *
+   * @param name  name of the group
+   * @param branchName
    * @param packageName vm name of the package
-   * @param node        class coverage data
-   * @throws java.io.IOException in case of problems with the writer
+   * @param node        class coverage data    @throws java.io.IOException in case of problems with the writer
    */
-  public void writeRow(final String groupName, final String suiteName, final String packageName, final IClassCoverage node, final Date suiteRunDate) throws IOException {
+  public void writeRow(String name, String branchName, final String changelist, final String suiteName, final String packageName, final IClassCoverage node, final Date suiteRunDate) throws IOException {
     final String className = languageNames.getClassName(node.getName(), node.getSignature(), node.getSuperName(), node.getInterfaceNames());
 
     StringBuilder sql = new StringBuilder().append("INSERT INTO COVERAGE (");
+    sql.append("branch, changelist, ");
     for (final CounterEntity entity : COUNTERS) {
       sql.append(entity.name()).append("_MISSED, ");
       sql.append(entity.name()).append("_COVERED, ");
     }
     sql.append("package, suite, class, suite_run_date) VALUES (");
 
+    // values follow
+
+    sql.append("'").append(branchName).append("', '").append(changelist).append("', ");
     for (final CounterEntity entity : COUNTERS) {
       final ICounter counter = node.getCounter(entity);
       sql.append(counter.getMissedCount()).append(", ");

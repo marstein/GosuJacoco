@@ -54,6 +54,8 @@ public class SQLReportGenerator {
   private SessionInfoStore sessionInfoStore;
   private String suiteName;
   private Date suiteRunDate;
+  private String branchName;
+  private String changelist;
 
   /**
    * Create a new generator based for the given project.
@@ -69,6 +71,8 @@ public class SQLReportGenerator {
     this.sourceDirectories.add(new File(projectDirectory, "src"));
     this.suiteName = projectDirectory.getName();
     this.suiteRunDate = new Date(projectDirectory.lastModified());
+    this.branchName = "branch";
+    this.changelist = "cccccc";
   }
 
   /**
@@ -108,7 +112,7 @@ public class SQLReportGenerator {
     // Create a concrete report visitor based on some supplied
     // configuration. In this case we use the defaults
     final SQLFormatter sqlFormatter = new SQLFormatter();
-    final IReportVisitor visitor = sqlFormatter.createVisitor(reportConnection, suiteName, suiteRunDate);
+    final IReportVisitor visitor = sqlFormatter.createVisitor(reportConnection, branchName, changelist, suiteName, suiteRunDate);
 
     // Initialize the report with all of the execution and session
     // information. At this point the report doesn't know about the
