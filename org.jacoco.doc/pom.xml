@@ -21,7 +21,7 @@
 
   <artifactId>org.jacoco.doc</artifactId>
   <!-- do not set packaging to pom, because otherwise we will receive "Not executing Javadoc as the project is not a Java classpath-capable package" -->
-  <packaging>eclipse-plugin</packaging>
+
 
   <name>JaCoCo :: Documentation</name>
   <description>JaCoCo Standalone Distribution</description>

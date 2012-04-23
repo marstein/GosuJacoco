@@ -31,7 +31,15 @@
     <maven.javadoc.skip>true</maven.javadoc.skip>
   </properties>
 
-  <dependencies>
+    <repositories>
+        <repository>
+            <id>Guidewire-nexus</id>
+            <name>Guidewire Nexus Repository</name>
+            <url>http://nexus:8081/nexus/content/repositories/gosu-lang.org-releases/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>org.jacoco.core</artifactId>
@@ -42,7 +50,6 @@
           <artifactId>gosu-core-api</artifactId>
           <version>${gosu.version}</version>
       </dependency>
-
 
   </dependencies>
 

@@ -128,10 +128,6 @@
 
         <jvm.args></jvm.args>
         <argLine>${jvm.args}</argLine>
-        <tycho.testArgLine>${argLine}</tycho.testArgLine>
-
-        <!-- Plugins versions -->
-        <tycho.version>0.13.0</tycho.version>
 
         <!-- Dependencies versions -->
         <asm.version>3.3.1</asm.version>
@@ -365,37 +361,6 @@
                     <artifactId>maven-toolchains-plugin</artifactId>
                     <version>1.0</version>
                 </plugin>
-                <!-- Tycho plugins -->
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-maven-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>target-platform-configuration</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-packaging-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-source-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-compiler-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-surefire-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
                 <!-- Mojo plugins -->
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -417,35 +382,6 @@
         </pluginManagement>
 
         <plugins>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-maven-plugin</artifactId>
-                <extensions>true</extensions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>target-platform-configuration</artifactId>
-                <configuration>
-                    <resolver>p2</resolver>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-compiler-plugin</artifactId>
-                <configuration>
-                    <excludeResources>
-                        <excludeResource>**/*.properties</excludeResource>
-                    </excludeResources>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-surefire-plugin</artifactId>
-                <configuration>
-                    <skipExec>${skipTests}</skipExec>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -524,11 +460,13 @@
                         </goals>
                         <configuration>
                             <rules>
+<!--
                                 <requireNoRepositories>
                                     <message>The rules for repo1.maven.org are that pom.xml files should not include repository definitions.</message>
                                     <banRepositories>true</banRepositories>
                                     <banPluginRepositories>true</banPluginRepositories>
                                 </requireNoRepositories>
+-->
                                 <requireReleaseDeps>
                                     <message>No SNAPSHOT versions allowed for dependencies</message>
                                     <onlyWhenRelease>true</onlyWhenRelease>
@@ -698,18 +636,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <groupId>org.eclipse.tycho</groupId>
-                        <artifactId>tycho-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>plugin-source</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <!-- Generates Javadoc -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -796,31 +722,6 @@
             </build>
         </profile>
 
-        <!-- This profile is activated only during build and allows to use p2 repository without bothering our consumers and in compliance with rules for repo1 -->
-        <profile>
-            <id>tycho</id>
-            <activation>
-                <file>
-                    <!-- This employs that the basedir expression is only recognized by Maven 3.x (see MNG-2363) -->
-                    <exists>${basedir}</exists>
-                </file>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>jacoco-thirdparty</id>
-                    <layout>p2</layout>
-                    <url>http://download.eclipse.org/releases/helios</url>
-                </repository>
 
-
-                <repository>
-                    <id>Guidewire-nexus</id>
-                    <name>Guidewire Nexus Repository</name>
-                    <url>http://nexus:8081/nexus/content/repositories/gosu-lang.org-releases/</url>
-                </repository>
-
-
-            </repositories>
-        </profile>
     </profiles>
 </project>

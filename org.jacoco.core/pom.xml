@@ -20,7 +20,6 @@
   </parent>
 
   <artifactId>org.jacoco.core</artifactId>
-  <packaging>eclipse-plugin</packaging>
 
   <name>JaCoCo :: Core</name>
   <description>JaCoCo Core</description>

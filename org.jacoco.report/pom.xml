@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>org.jacoco.report</artifactId>
-  <packaging>eclipse-plugin</packaging>
+
 
   <name>JaCoCo :: Report</name>
   <description>JaCoCo Reporting</description>
