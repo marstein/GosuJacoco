@@ -110,6 +110,7 @@ public class CoverageTransformer implements ClassFileTransformer {
       file.getParentFile().mkdirs();
       OutputStream out = null;
       try {
+        log.info("Dumping "+name+" to file "+file.toString());
         out = new FileOutputStream(file);
         out.write(bytecode);
       } catch (IOException e) {

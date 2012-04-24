@@ -390,6 +390,7 @@ public final class AgentOptions {
   public File getClassDumpDirectory() {
     String dirName = getOption(CLASSDUMPDIR, null);
     if (dirName == null) return null;
+    System.out.println("Dumping bytecode to "+dirName);
     return new File(dirName);
   }
 

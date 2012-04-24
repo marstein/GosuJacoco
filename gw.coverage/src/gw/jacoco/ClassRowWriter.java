@@ -94,7 +94,7 @@ class ClassRowWriter {
     } else {
       sql.append("\'").append(sdf.format(suiteRunDate)).append("')");
     }
-//    logger.info(sql.toString());
+    logger.info(sql.toString());
     Statement statement = null;
     try {
       statement = connection.createStatement();

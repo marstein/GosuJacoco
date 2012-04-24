@@ -11,6 +11,7 @@
  *******************************************************************************/
 package gw.jacoco;
 
+import com.beust.jcommander.JCommander;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
@@ -18,20 +19,19 @@ import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.SessionInfoStore;
 import org.jacoco.report.DirectorySourceFileLocator;
-import org.jacoco.report.FileMultiReportOutput;
 import org.jacoco.report.IReportVisitor;
-import org.jacoco.report.html.HTMLFormatter;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Read a coverage data file, analyze it with the class/jar/dumped bytecode files from Gosu and write
@@ -42,13 +42,16 @@ import java.util.List;
  */
 public class SQLReportGenerator {
 
-  private final String title;
+  public static final String JDBC_DRIVER_NAME = "org.h2.Driver";
+  private  String title;
 
-  private final File executionDataFile;
-  private final File projectDirectory;
-  private final List<File> classesDirectories = new ArrayList<File>();
-  private final List<File> sourceDirectories = new ArrayList<File>();
+  private  File executionDataFile;
+  private  File projectDirectory;
+  private  List<File> classesDirectories = new ArrayList<File>();
+  private  List<File> sourceDirectories = new ArrayList<File>();
   private Connection reportConnection;
+  private String connectString;
+  private boolean createTables = false;
 
   private ExecutionDataStore executionDataStore;
   private SessionInfoStore sessionInfoStore;
@@ -56,6 +59,8 @@ public class SQLReportGenerator {
   private Date suiteRunDate;
   private String branchName;
   private String changelist;
+
+  private static Logger logger = Logger.getLogger("SQLReportGenerator");
 
   /**
    * Create a new generator based for the given project.
@@ -67,13 +72,51 @@ public class SQLReportGenerator {
     this.title = projectDirectory.getName();
     this.projectDirectory = projectDirectory;
     this.executionDataFile = new File(projectDirectory, "jacoco.exec");
-    this.classesDirectories.add(new File(projectDirectory, "bin"));
-    this.sourceDirectories.add(new File(projectDirectory, "src"));
     this.suiteName = projectDirectory.getName();
     this.suiteRunDate = new Date(projectDirectory.lastModified());
     this.branchName = "branch";
     this.changelist = "cccccc";
   }
+
+  public SQLReportGenerator withProjectDirectory(File directory) {
+    this.projectDirectory = directory;
+    return this;
+  }
+  public SQLReportGenerator withExecutionDataFile(File executionDataFile) {
+    this.executionDataFile = executionDataFile;
+    return this;
+  }
+  public SQLReportGenerator withClassesDirectory(File classesDirectory){
+    this.classesDirectories.add(classesDirectory);
+    return this;
+  }
+  public SQLReportGenerator withSuiteRunDate(Date suiteRunDate) {
+    this.suiteRunDate = new Date(projectDirectory.lastModified());
+    return this;
+  }
+  public SQLReportGenerator withSuiteName(String suiteName){
+    this.suiteName = suiteName;
+    return this;
+  }
+  public SQLReportGenerator withBranchName(String branchName){
+    this.branchName = branchName;
+    return this;
+  }
+  public SQLReportGenerator withChangelist(String changelist){
+    this.changelist = changelist;
+    return this;
+  }
+  public SQLReportGenerator withJDBCConnection(String jdbcConnectionString) {
+    this.connectString = jdbcConnectionString;
+    return this;
+  }
+  public SQLReportGenerator withCreateTables(boolean createTables) {
+    this.createTables = createTables;
+    return this;
+  }
+
+
+
 
   /**
    * Create the report.
@@ -93,20 +136,17 @@ public class SQLReportGenerator {
     // more than one bundle you will need to add a grouping node to your
     // report
     final IBundleCoverage bundleCoverage = analyzeStructure();
-
     createReport(bundleCoverage);
-
   }
 
   private void createReport(final IBundleCoverage bundleCoverage) throws IOException {
-    String connectString = "jdbc:h2:~/coverage-test-"+this.suiteName;
     try {
-      Class.forName("org.h2.Driver");
+      Class.forName(JDBC_DRIVER_NAME);
       this.reportConnection = DriverManager.getConnection(connectString, "sa", "");
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("Could not load org.h2.Driver database driver", e);
     } catch (SQLException e) {
-      throw new IllegalStateException("Could not get org.h2.Driver database connection to "+connectString, e);
+      throw new IllegalStateException("Could not get org.h2.Driver database connection to " + connectString, e);
     }
 
     // Create a concrete report visitor based on some supplied
@@ -131,7 +171,7 @@ public class SQLReportGenerator {
     try {
       this.reportConnection.close();
     } catch (SQLException e) {
-      throw new IllegalStateException("Could not close database connection",e);
+      throw new IllegalStateException("Could not close database connection", e);
     }
   }
 
@@ -153,7 +193,6 @@ public class SQLReportGenerator {
   private IBundleCoverage analyzeStructure() throws IOException {
     final CoverageBuilder coverageBuilder = new CoverageBuilder();
     final Analyzer analyzer = new Analyzer(executionDataStore, coverageBuilder);
-
     for (File classesDirectory : classesDirectories) {
       analyzer.analyzeAll(classesDirectory);
     }
@@ -167,8 +206,42 @@ public class SQLReportGenerator {
    * @throws java.io.IOException
    */
   public static void main(final String[] args) throws IOException {
-      final SQLReportGenerator generator = new SQLReportGenerator(new File(args[0]));
+    final CommandLineArguments commandLineArguments = new CommandLineArguments();
+    new JCommander(commandLineArguments, args);
+
+    if(commandLineArguments.createTables) {
+      createDBTables(commandLineArguments.jdbcConnection);
+    }
+
+    if (commandLineArguments.directory.size() != 1) {
+      System.err.println("Please specify exec file, bytecode dirs, etc!");
+      System.err.println("java -cp jacoco.jar;gw-coverage.jar;h2.jar -createTables -branch e-pr-merge -changelist 444222 -classesdir P:\\eng\\emerald\\pl\\ready\\active\\core\\gitmo\\configenv\\platform\\pl\\classes -execfile jc-coverage-gitmo-PLV3BareBone.exec -suite PLV3BareBone -jdbc jdbc:h2:~/coverage");
+      System.exit(2);
+    } else {
+      final SQLReportGenerator generator = new SQLReportGenerator(commandLineArguments.directory.get(0));
+      generator.withBranchName(commandLineArguments.branchName)
+              .withChangelist(commandLineArguments.changeList)
+              .withExecutionDataFile(commandLineArguments.execFile)
+              .withJDBCConnection(commandLineArguments.jdbcConnection)
+              .withSuiteName(commandLineArguments.suiteName)
+              .withSuiteRunDate(commandLineArguments.suiteRunDate);
+      for(File cpElement: commandLineArguments.classesDirs) {
+        generator.withClassesDirectory(cpElement);
+      }
       generator.create();
+    }
   }
 
+  private static void createDBTables(String connectString) {
+    try {
+      Class.forName(JDBC_DRIVER_NAME);
+      Connection reportConnection = DriverManager.getConnection(connectString, "sa", "");
+      Statement createTable = reportConnection.createStatement();
+      createTable.executeUpdate("CREATE TABLE COVERAGE (INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer, branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(100), class varchar(100), suite_run_date timestamp)");
+    } catch (ClassNotFoundException e) {
+      throw new IllegalStateException("Could not load "+JDBC_DRIVER_NAME+" database driver", e);
+    } catch (SQLException e) {
+      logger.severe("Error during create table. Continuing... " + e.toString());
+    }
+  }
 }
