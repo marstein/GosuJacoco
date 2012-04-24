@@ -6,11 +6,7 @@ import org.jacoco.report.ILanguageNames;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.JavaNames;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Date;
@@ -57,21 +53,21 @@ public class SQLFormatter {
   /**
    * Creates a new visitor to write a report to the given stream.
    *
-   *
-   * @param output output stream to write the report to
+   * @param connection output SQL connection to write the report to
    * @return visitor to emit the report data to
    * @throws java.io.IOException in case of problems with the output stream
    */
   public IReportVisitor createVisitor(final Connection connection, final String branchName, final String changelist, String suiteName, Date suiteRunDate)
           throws IOException {
     final ClassRowWriter rowWriter = new ClassRowWriter(connection, languageNames);
+
     class Visitor extends SuiteGroupHandler implements IReportVisitor {
+
       Visitor(String branchName, String changelist, String suiteName, Date suiteRunDate) {
         super(rowWriter, suiteName, branchName, changelist, suiteName, suiteRunDate);
       }
 
-      public void visitInfo(final List<SessionInfo> sessionInfos,
-                            final Collection<ExecutionData> executionData)
+      public void visitInfo(final List<SessionInfo> sessionInfos, final Collection<ExecutionData> executionData)
               throws IOException {
         // Info not used for SQL report
       }

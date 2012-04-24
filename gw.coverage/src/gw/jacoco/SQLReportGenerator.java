@@ -43,12 +43,12 @@ import java.util.logging.Logger;
 public class SQLReportGenerator {
 
   public static final String JDBC_DRIVER_NAME = "org.h2.Driver";
-  private  String title;
+  private String title;
 
-  private  File executionDataFile;
-  private  File projectDirectory;
-  private  List<File> classesDirectories = new ArrayList<File>();
-  private  List<File> sourceDirectories = new ArrayList<File>();
+  private File executionDataFile;
+  private File projectDirectory;
+  private List<File> classesDirectories = new ArrayList<File>();
+  private List<File> sourceDirectories = new ArrayList<File>();
   private Connection reportConnection;
   private String connectString;
   private boolean createTables = false;
@@ -82,40 +82,46 @@ public class SQLReportGenerator {
     this.projectDirectory = directory;
     return this;
   }
+
   public SQLReportGenerator withExecutionDataFile(File executionDataFile) {
     this.executionDataFile = executionDataFile;
     return this;
   }
-  public SQLReportGenerator withClassesDirectory(File classesDirectory){
+
+  public SQLReportGenerator withClassesDirectory(File classesDirectory) {
     this.classesDirectories.add(classesDirectory);
     return this;
   }
+
   public SQLReportGenerator withSuiteRunDate(Date suiteRunDate) {
     this.suiteRunDate = new Date(projectDirectory.lastModified());
     return this;
   }
-  public SQLReportGenerator withSuiteName(String suiteName){
+
+  public SQLReportGenerator withSuiteName(String suiteName) {
     this.suiteName = suiteName;
     return this;
   }
-  public SQLReportGenerator withBranchName(String branchName){
+
+  public SQLReportGenerator withBranchName(String branchName) {
     this.branchName = branchName;
     return this;
   }
-  public SQLReportGenerator withChangelist(String changelist){
+
+  public SQLReportGenerator withChangelist(String changelist) {
     this.changelist = changelist;
     return this;
   }
+
   public SQLReportGenerator withJDBCConnection(String jdbcConnectionString) {
     this.connectString = jdbcConnectionString;
     return this;
   }
+
   public SQLReportGenerator withCreateTables(boolean createTables) {
     this.createTables = createTables;
     return this;
   }
-
-
 
 
   /**
@@ -149,33 +155,41 @@ public class SQLReportGenerator {
       throw new IllegalStateException("Could not get org.h2.Driver database connection to " + connectString, e);
     }
 
-    // Create a concrete report visitor based on some supplied
-    // configuration. In this case we use the defaults
-    final SQLFormatter sqlFormatter = new SQLFormatter();
-    final IReportVisitor visitor = sqlFormatter.createVisitor(reportConnection, branchName, changelist, suiteName, suiteRunDate);
-
-    // Initialize the report with all of the execution and session
-    // information. At this point the report doesn't know about the
-    // structure of the report being created
-    visitor.visitInfo(sessionInfoStore.getInfos(), executionDataStore.getContents());
-
-    for (File sourceDirectory : sourceDirectories) {
-      // Populate the report structure with the bundle coverage information.
-      // Call visitGroup if you need groups in your report.
-      visitor.visitBundle(bundleCoverage, new DirectorySourceFileLocator(sourceDirectory, "utf-8", 4));
-    }
-    // Signal end of structure information to allow report to write all
-    // information out
-    visitor.visitEnd();
-
     try {
-      this.reportConnection.close();
-    } catch (SQLException e) {
-      throw new IllegalStateException("Could not close database connection", e);
+      // Create a concrete report visitor based on some supplied
+      // configuration. In this case we use the defaults
+      final SQLFormatter sqlFormatter = new SQLFormatter();
+      final IReportVisitor visitor = sqlFormatter.createVisitor(reportConnection, branchName, changelist, suiteName, suiteRunDate);
+
+      // Initialize the report with all of the execution and session
+      // information. At this point the report doesn't know about the
+      // structure of the report being created
+      visitor.visitInfo(sessionInfoStore.getInfos(), executionDataStore.getContents());
+
+      for (File sourceDirectory : sourceDirectories) {
+        // Populate the report structure with the bundle coverage information.
+        // Call visitGroup if you need groups in your report.
+        visitor.visitBundle(bundleCoverage, new DirectorySourceFileLocator(sourceDirectory, "utf-8", 4));
+      }
+
+      if (sourceDirectories.isEmpty()) {
+        visitor.visitBundle(bundleCoverage, null);
+      }
+
+      // Signal end of structure information to allow report to write all
+      // information out
+      visitor.visitEnd();
+    } finally {
+      try {
+        this.reportConnection.close();
+      } catch (SQLException e) {
+        logger.severe("Could not close database connection" + e);
+      }
     }
   }
 
   private void loadExecutionData() throws IOException {
+    logger.info("Loading execution data from " + executionDataFile.toString());
     final FileInputStream fis = new FileInputStream(executionDataFile);
     final ExecutionDataReader executionDataReader = new ExecutionDataReader(fis);
     executionDataStore = new ExecutionDataStore();
@@ -194,6 +208,7 @@ public class SQLReportGenerator {
     final CoverageBuilder coverageBuilder = new CoverageBuilder();
     final Analyzer analyzer = new Analyzer(executionDataStore, coverageBuilder);
     for (File classesDirectory : classesDirectories) {
+      logger.info("Analyzing class directory/jar " + classesDirectory.toString());
       analyzer.analyzeAll(classesDirectory);
     }
     return coverageBuilder.getBundle(title);
@@ -209,7 +224,7 @@ public class SQLReportGenerator {
     final CommandLineArguments commandLineArguments = new CommandLineArguments();
     new JCommander(commandLineArguments, args);
 
-    if(commandLineArguments.createTables) {
+    if (commandLineArguments.createTables) {
       createDBTables(commandLineArguments.jdbcConnection);
     }
 
@@ -225,7 +240,7 @@ public class SQLReportGenerator {
               .withJDBCConnection(commandLineArguments.jdbcConnection)
               .withSuiteName(commandLineArguments.suiteName)
               .withSuiteRunDate(commandLineArguments.suiteRunDate);
-      for(File cpElement: commandLineArguments.classesDirs) {
+      for (File cpElement : commandLineArguments.classesDirs) {
         generator.withClassesDirectory(cpElement);
       }
       generator.create();
@@ -233,15 +248,24 @@ public class SQLReportGenerator {
   }
 
   private static void createDBTables(String connectString) {
+    Connection reportConnection = null;
     try {
       Class.forName(JDBC_DRIVER_NAME);
-      Connection reportConnection = DriverManager.getConnection(connectString, "sa", "");
+      reportConnection = DriverManager.getConnection(connectString, "sa", "");
       Statement createTable = reportConnection.createStatement();
-      createTable.executeUpdate("CREATE TABLE COVERAGE (INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer, branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(100), class varchar(100), suite_run_date timestamp)");
+      createTable.executeUpdate("CREATE TABLE COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(100), class varchar(300), suite_run_date timestamp, INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)");
     } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load "+JDBC_DRIVER_NAME+" database driver", e);
+      throw new IllegalStateException("Could not load " + JDBC_DRIVER_NAME + " database driver", e);
     } catch (SQLException e) {
-      logger.severe("Error during create table. Continuing... " + e.toString());
+      logger.warning("Error during create table. Continuing... " + e.toString());
+    } finally {
+      if (reportConnection != null) {
+        try {
+          reportConnection.close();
+        } catch (SQLException e) {
+          logger.severe("Cannot close connection after creating table!");
+        }
+      }
     }
   }
 }

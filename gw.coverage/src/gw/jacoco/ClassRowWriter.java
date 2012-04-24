@@ -69,7 +69,7 @@ class ClassRowWriter {
    */
   public void writeRow(String name, String branchName, final String changelist, final String suiteName, final String packageName, final IClassCoverage node, final Date suiteRunDate) throws IOException {
     final String className = languageNames.getClassName(node.getName(), node.getSignature(), node.getSuperName(), node.getInterfaceNames());
-
+    logger.fine("writing class "+className+" to database");
     StringBuilder sql = new StringBuilder().append("INSERT INTO COVERAGE (");
     sql.append("branch, changelist, ");
     for (final CounterEntity entity : COUNTERS) {
@@ -86,15 +86,15 @@ class ClassRowWriter {
       sql.append(counter.getMissedCount()).append(", ");
       sql.append(counter.getCoveredCount()).append(", ");
     }
+    sql.append("\'").append(packageName).append("\', ");
     sql.append("\'").append(suiteName).append("\', ");
-    sql.append("\'").append(packageName).append("\', ");
-    sql.append("\'").append(packageName).append("\', ");
+    sql.append("\'").append(className).append("\', ");
     if(suiteRunDate == null) {
       sql.append("null)");
     } else {
       sql.append("\'").append(sdf.format(suiteRunDate)).append("')");
     }
-    logger.info(sql.toString());
+    logger.finer(sql.toString());
     Statement statement = null;
     try {
       statement = connection.createStatement();
