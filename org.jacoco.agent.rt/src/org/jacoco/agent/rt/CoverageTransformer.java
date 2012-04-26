@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
@@ -76,8 +75,8 @@ public class CoverageTransformer implements ClassFileTransformer {
       return null;
     }
 
-    log.info("Transforming class " + classname + " size " + classfileBuffer.length + " bytes filtered=" + filter(loader, classname));
-    possiblyDump(classname, ".class", classfileBuffer, isGosuClass(classBeingRedefined));
+    log.finest("Transforming class " + classname + " size " + classfileBuffer.length + " bytes");
+    possiblyDump(classname, ".class", classfileBuffer, isGeneratedClass(classBeingRedefined));
 
     try {
       return instrumenter.instrument(classfileBuffer);
@@ -90,11 +89,15 @@ public class CoverageTransformer implements ClassFileTransformer {
     }
   }
 
-  // Check if the class is dynamically generated without a class file.
-  private boolean isGosuClass(Class<?> classBeingRedefined) {
-    if (classBeingRedefined == null) return false;
-    for(java.lang.Class interfaceClass: classBeingRedefined.getInterfaces()) {
-      if(interfaceClass.getName().contains("IGosu")) return true;
+  // Check if the class is dynamically generated; ie it is without a class file.
+  private boolean isGeneratedClass(Class<?> classBeingRedefined) {
+    if (classBeingRedefined == null) {
+      return false;
+    }
+    for (java.lang.Class interfaceClass : classBeingRedefined.getInterfaces()) {
+      if (interfaceClass.getName().startsWith("IGosu")) {
+        return true;
+      }
     }
     return false;
   }
@@ -102,25 +105,26 @@ public class CoverageTransformer implements ClassFileTransformer {
 
   /**
    * Dump bytecode if configured with location to write to.
-   * TODO: do not dump if class file already exists.
    */
-  private void possiblyDump(String name, String suffix, byte[] bytecode, boolean gosuClass) {
-    if (classDumpDir != null && gosuClass) {
+  private void possiblyDump(String name, String suffix, byte[] bytecode, boolean generatedClass) {
+    if (classDumpDir != null && generatedClass) {
       File file = new File(classDumpDir, name + suffix);
-      file.getParentFile().mkdirs();
-      OutputStream out = null;
-      try {
-        log.info("Dumping "+name+" to file "+file.toString());
-        out = new FileOutputStream(file);
-        out.write(bytecode);
-      } catch (IOException e) {
-        logger.logExeption(e);
-      } finally {
-        if (out != null) {
-          try {
-            out.close();
-          } catch (IOException e) {
-            logger.logExeption(e);
+      if (!file.exists()) {
+        file.getParentFile().mkdirs();
+        OutputStream out = null;
+        try {
+          log.info("Dumping " + name + " to file " + file.toString());
+          out = new FileOutputStream(file);
+          out.write(bytecode);
+        } catch (IOException e) {
+          logger.logExeption(e);
+        } finally {
+          if (out != null) {
+            try {
+              out.close();
+            } catch (IOException e) {
+              logger.logExeption(e);
+            }
           }
         }
       }

@@ -222,13 +222,14 @@ public class SQLReportGenerator {
    */
   public static void main(final String[] args) throws IOException {
     final CommandLineArguments commandLineArguments = new CommandLineArguments();
-    new JCommander(commandLineArguments, args);
+    JCommander commander = new JCommander(commandLineArguments, args);
 
     if (commandLineArguments.createTables) {
       createDBTables(commandLineArguments.jdbcConnection);
     }
 
     if (commandLineArguments.directory.size() != 1) {
+      commander.usage();
       System.err.println("Please specify exec file, bytecode dirs, etc!");
       System.err.println("java -cp jacoco.jar;gw-coverage.jar;h2.jar -createTables -branch e-pr-merge -changelist 444222 -classesdir P:\\eng\\emerald\\pl\\ready\\active\\core\\gitmo\\configenv\\platform\\pl\\classes -execfile jc-coverage-gitmo-PLV3BareBone.exec -suite PLV3BareBone -jdbc jdbc:h2:~/coverage");
       System.exit(2);
