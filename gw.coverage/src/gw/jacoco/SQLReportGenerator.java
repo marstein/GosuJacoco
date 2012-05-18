@@ -12,6 +12,7 @@
 package gw.jacoco;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
@@ -41,8 +42,6 @@ import java.util.logging.Logger;
  * source highlighting will not work.
  */
 public class SQLReportGenerator {
-
-  public static final String JDBC_DRIVER_NAME = "org.h2.Driver";
   private String title;
 
   private File executionDataFile;
@@ -51,7 +50,6 @@ public class SQLReportGenerator {
   private List<File> sourceDirectories = new ArrayList<File>();
   private Connection reportConnection;
   private String connectString;
-  private boolean createTables = false;
 
   private ExecutionDataStore executionDataStore;
   private SessionInfoStore sessionInfoStore;
@@ -61,14 +59,15 @@ public class SQLReportGenerator {
   private String changelist;
 
   private static Logger logger = Logger.getLogger("SQLReportGenerator");
+  private String jdbcDrivername;
 
   /**
    * Create a new generator based for the given project.
    *
-   * @param projectDirectory
+   * @param projectDirectory the directory where the results reside the .exec file resides
    */
   public SQLReportGenerator(final File projectDirectory) {
-    // These have to be passed in as parameters or can be guessed from the files in the projectDirectory.
+    // These have to be passed in as parameters or can be guessed from the files in the projectDirectory. Default settings below.
     this.title = projectDirectory.getName();
     this.projectDirectory = projectDirectory;
     this.executionDataFile = new File(projectDirectory, "jacoco.exec");
@@ -76,11 +75,6 @@ public class SQLReportGenerator {
     this.suiteRunDate = new Date(projectDirectory.lastModified());
     this.branchName = "branch";
     this.changelist = "cccccc";
-  }
-
-  public SQLReportGenerator withProjectDirectory(File directory) {
-    this.projectDirectory = directory;
-    return this;
   }
 
   public SQLReportGenerator withExecutionDataFile(File executionDataFile) {
@@ -118,8 +112,8 @@ public class SQLReportGenerator {
     return this;
   }
 
-  public SQLReportGenerator withCreateTables(boolean createTables) {
-    this.createTables = createTables;
+  public SQLReportGenerator withJDBCDrivername(String jdbcDrivername) {
+    this.jdbcDrivername = jdbcDrivername;
     return this;
   }
 
@@ -147,12 +141,12 @@ public class SQLReportGenerator {
 
   private void createReport(final IBundleCoverage bundleCoverage) throws IOException {
     try {
-      Class.forName(JDBC_DRIVER_NAME);
+      Class.forName(jdbcDrivername);
       this.reportConnection = DriverManager.getConnection(connectString, "sa", "");
     } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load org.h2.Driver database driver", e);
+      throw new IllegalStateException("Could not load "+jdbcDrivername+" database driver", e);
     } catch (SQLException e) {
-      throw new IllegalStateException("Could not get org.h2.Driver database connection to " + connectString, e);
+      throw new IllegalStateException("Could not get "+jdbcDrivername+" database connection to " + connectString, e);
     }
 
     try {
@@ -222,10 +216,16 @@ public class SQLReportGenerator {
    */
   public static void main(final String[] args) throws IOException {
     final CommandLineArguments commandLineArguments = new CommandLineArguments();
-    JCommander commander = new JCommander(commandLineArguments, args);
+    JCommander commander = null;
+    try {
+      commander = new JCommander(commandLineArguments, args);
+    } catch (ParameterException e) {
+      System.err.println("Command line parameter error!");
+      new JCommander(commandLineArguments).usage();
+    }
 
     if (commandLineArguments.createTables) {
-      createDBTables(commandLineArguments.jdbcConnection);
+      createDBTables(commandLineArguments.jdbcConnection, commandLineArguments.jdbcDrivername);
     }
 
     if (commandLineArguments.directory.size() != 1) {
@@ -240,7 +240,8 @@ public class SQLReportGenerator {
               .withExecutionDataFile(commandLineArguments.execFile)
               .withJDBCConnection(commandLineArguments.jdbcConnection)
               .withSuiteName(commandLineArguments.suiteName)
-              .withSuiteRunDate(commandLineArguments.suiteRunDate);
+              .withSuiteRunDate(commandLineArguments.suiteRunDate)
+              .withJDBCDrivername(commandLineArguments.jdbcDrivername);
       for (File cpElement : commandLineArguments.classesDirs) {
         generator.withClassesDirectory(cpElement);
       }
@@ -248,15 +249,15 @@ public class SQLReportGenerator {
     }
   }
 
-  private static void createDBTables(String connectString) {
+  private static void createDBTables(String connectString, String driverName) {
     Connection reportConnection = null;
     try {
-      Class.forName(JDBC_DRIVER_NAME);
+      Class.forName(driverName);
       reportConnection = DriverManager.getConnection(connectString, "sa", "");
       Statement createTable = reportConnection.createStatement();
-      createTable.executeUpdate("CREATE TABLE COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(100), class varchar(300), suite_run_date timestamp, INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)");
+      createTable.executeUpdate("CREATE TABLE COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), class varchar(300), suite_run_date timestamp, INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)");
     } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load " + JDBC_DRIVER_NAME + " database driver", e);
+      throw new IllegalStateException("Could not load " + driverName + " database driver", e);
     } catch (SQLException e) {
       logger.warning("Error during create table. Continuing... " + e.toString());
     } finally {

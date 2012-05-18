@@ -32,6 +32,9 @@ public class CommandLineArguments {
   @Parameter(names = { "-jdbcconnection", "-jdbc" }, description = "JDBC connection string", required = true)
   public String jdbcConnection = "no jdbc connection";
 
+  @Parameter(names = { "-jdbcdriver", "-jd" }, description = "JDBC driver name, like org.h2.Driver", required = true)
+  public String jdbcDrivername = "no jdbc driver";
+
   @Parameter(names = { "-execfile", "-e"}, description = "Jacoco execution file name", converter = FileConverter.class, required = true)
   public File execFile;
 
