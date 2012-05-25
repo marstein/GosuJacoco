@@ -3,6 +3,7 @@ package gw.jacoco;
 import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.IPackageCoverage;
+import org.jacoco.core.analysis.ISourceFileCoverage;
 import org.jacoco.report.IReportGroupVisitor;
 import org.jacoco.report.ISourceFileLocator;
 
@@ -38,11 +39,14 @@ class SuiteGroupHandler implements IReportGroupVisitor {
 
   public void visitBundle(final IBundleCoverage bundle, final ISourceFileLocator locator) throws IOException {
     logger.info("Handling bundle "+bundle.getName()+ " with "+bundle.getPackages().size()+" packages");
-    final String name = appendName(bundle.getName());
+    final String bundleName = appendName(bundle.getName());
     for (final IPackageCoverage p : bundle.getPackages()) {
       final String packageName = p.getName();
       for (final IClassCoverage classCoverage : p.getClasses()) {
-        writer.writeRow(name, branchName, changelist, suiteName, packageName, classCoverage, suiteRunDate != null ? new java.sql.Date(suiteRunDate.getTime()) : null);
+        writer.writeRow(bundleName, branchName, changelist, suiteName, packageName, classCoverage, suiteRunDate != null ? new java.sql.Date(suiteRunDate.getTime()) : null);
+      }
+      for (final ISourceFileCoverage sourceCoverage : p.getSourceFiles()) {
+        writer.writeSourceRow(bundleName, branchName, changelist, suiteName, packageName, sourceCoverage, suiteRunDate != null ? new java.sql.Date(suiteRunDate.getTime()) : null);
       }
     }
   }
