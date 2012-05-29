@@ -40,15 +40,20 @@ class SuiteGroupHandler implements IReportGroupVisitor {
   public void visitBundle(final IBundleCoverage bundle, final ISourceFileLocator locator) throws IOException {
     logger.info("Handling bundle "+bundle.getName()+ " with "+bundle.getPackages().size()+" packages");
     final String bundleName = appendName(bundle.getName());
+    int fileCounter = 0;
+    int classCounter = 0;
     for (final IPackageCoverage p : bundle.getPackages()) {
       final String packageName = p.getName();
       for (final IClassCoverage classCoverage : p.getClasses()) {
+        classCounter++;
         writer.writeRow(bundleName, branchName, changelist, suiteName, packageName, classCoverage, suiteRunDate != null ? new java.sql.Date(suiteRunDate.getTime()) : null);
       }
       for (final ISourceFileCoverage sourceCoverage : p.getSourceFiles()) {
+        fileCounter++;
         writer.writeSourceRow(bundleName, branchName, changelist, suiteName, packageName, sourceCoverage, suiteRunDate != null ? new java.sql.Date(suiteRunDate.getTime()) : null);
       }
     }
+    logger.info("Bundle "+bundleName+" had "+fileCounter+" files and "+classCounter+" classes.");
   }
 
   public IReportGroupVisitor visitGroup(String name) throws IOException {

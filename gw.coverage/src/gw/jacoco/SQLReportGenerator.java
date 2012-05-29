@@ -251,7 +251,9 @@ public class SQLReportGenerator {
   }
 
   /*
-  Create the database tables for MS SQL Server. Uses vbinary. The table is used in ClassRowWriter.writeRow()
+  Create the database tables for MS SQL Server. Uses vbinary. The table is used in ClassRowWriter.writeRow().
+  It would improve the size of the written table if the dimensions (branch, suite, package, etc) were in separate
+  tables that point into a fact table containing the measurements.
    */
   private static void createDBTables(String connectString, String driverName) {
     Connection reportConnection = null;
