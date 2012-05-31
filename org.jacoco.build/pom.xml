@@ -9,13 +9,12 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7-SNAPSHOT</version>
+    <version>0.5.7.gw.1</version>
     <packaging>pom</packaging>
 
     <name>JaCoCo</name>
@@ -97,9 +96,9 @@
     </modules>
 
     <scm>
-        <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/trunk/org.jacoco.build</connection>
-        <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/trunk/org.jacoco.build</developerConnection>
-        <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/trunk/org.jacoco.build</url>
+        <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</connection>
+        <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</developerConnection>
+        <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</url>
     </scm>
     <issueManagement>
         <system>Trac</system>
@@ -107,14 +106,14 @@
     </issueManagement>
     <distributionManagement>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>gw.releases.jacoco</id>
+            <url>http://nexus/content/repositories/releases/</url>
+            <name>Guidewire internal releases repository</name>
         </repository>
         <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>${sonatypeOssDistMgmtSnapshotsUrl}</url>
+            <id>gw.snapshots.jacoco</id>
+            <url>http://nexus/content/repositories/snapshots/</url>
+            <name>Guidewire internal snapshots repository</name>
         </snapshotRepository>
     </distributionManagement>
 
@@ -126,7 +125,7 @@
         <build.date>${maven.build.timestamp}</build.date>
         <jacoco.home.url>http://www.eclemma.org/jacoco</jacoco.home.url>
 
-        <jvm.args></jvm.args>
+        <jvm.args />
         <argLine>${jvm.args}</argLine>
 
         <!-- Dependencies versions -->
@@ -291,11 +290,13 @@
                     <artifactId>maven-invoker-plugin</artifactId>
                     <version>1.5</version>
                 </plugin>
+                <!--
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>1.3</version>
                 </plugin>
+                -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -497,20 +498,20 @@
                                 <fileset dir="${basedir}" includes="**/*.java,**/*.xml,**/*.bsh" excludes="target/**" id="missinglicense.fileset">
                                     <not>
                                         <and>
-                                            <contains text="Copyright (c) 2009, 2012 Mountainminds GmbH &amp; Co. KG and Contributors"/>
-                                            <contains text="All rights reserved. This program and the accompanying materials"/>
-                                            <contains text="are made available under the terms of the Eclipse Public License v1.0"/>
-                                            <contains text="which accompanies this distribution, and is available at"/>
-                                            <contains text="http://www.eclipse.org/legal/epl-v10.html"/>
+                                            <contains text="Copyright (c) 2009, 2012 Mountainminds GmbH &amp; Co. KG and Contributors" />
+                                            <contains text="All rights reserved. This program and the accompanying materials" />
+                                            <contains text="are made available under the terms of the Eclipse Public License v1.0" />
+                                            <contains text="which accompanies this distribution, and is available at" />
+                                            <contains text="http://www.eclipse.org/legal/epl-v10.html" />
                                         </and>
                                     </not>
                                 </fileset>
-                                <pathconvert property="missing" refid="missinglicense.fileset"/>
+                                <pathconvert property="missing" refid="missinglicense.fileset" />
                                 <!--
                                                 <fail message="Invalid license info in: ${missing}">
                                                   <condition>
                                                     <not>
-                                                      <equals arg1="${missing}" arg2=""/>
+                                                      <equals arg1="${missing}" arg2="" />
                                                     </not>
                                                   </condition>
                                                 </fail>
@@ -682,7 +683,7 @@
                                           <profiles>sign</profiles>
                                         </requireActiveProfile>
                                         -->
-                                        <requireReleaseVersion/>
+                                        <requireReleaseVersion />
                                     </rules>
                                 </configuration>
                             </execution>
@@ -710,6 +711,7 @@
                         </executions>
                     </plugin>
                     <!-- Signs artifacts -->
+                    <!--
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -723,6 +725,7 @@
                             </execution>
                         </executions>
                     </plugin>
+                    -->
                 </plugins>
             </build>
         </profile>

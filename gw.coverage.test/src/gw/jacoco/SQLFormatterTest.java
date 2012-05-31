@@ -1,5 +1,6 @@
 package gw.jacoco;
 
+import gw.jacoco.sqlreport.SQLFormatter;
 import gw.jacoco.help.ReportStructureTestDriver;
 import org.jacoco.report.ILanguageNames;
 import org.jacoco.report.IReportVisitor;
@@ -13,10 +14,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -24,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- * Unit tests for {@link SQLFormatter}.
+ * Unit tests for {@link gw.jacoco.sqlreport.SQLFormatter}.
  */
 public class SQLFormatterTest {
 

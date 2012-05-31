@@ -9,7 +9,7 @@
  *    Brock Janiczak - initial API and implementation
  *
  *******************************************************************************/
-package gw.jacoco;
+package gw.jacoco.sqlreport;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -59,7 +59,6 @@ public class SQLReportGenerator {
   private String changelist;
 
   private static Logger logger = Logger.getLogger("SQLReportGenerator");
-  private String jdbcDrivername;
 
   /**
    * Create a new generator based for the given project.
@@ -112,12 +111,6 @@ public class SQLReportGenerator {
     return this;
   }
 
-  public SQLReportGenerator withJDBCDrivername(String jdbcDrivername) {
-    this.jdbcDrivername = jdbcDrivername;
-    return this;
-  }
-
-
   /**
    * Create the report.
    *
@@ -141,12 +134,9 @@ public class SQLReportGenerator {
 
   private void createReport(final IBundleCoverage bundleCoverage) throws IOException {
     try {
-      Class.forName(jdbcDrivername);
       this.reportConnection = DriverManager.getConnection(connectString);
-    } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load " + jdbcDrivername + " database driver", e);
     } catch (SQLException e) {
-      throw new IllegalStateException("Could not get " + jdbcDrivername + " database connection to " + connectString, e);
+      throw new IllegalStateException("Could not get database connection to " + connectString, e);
     }
 
     try {
@@ -226,7 +216,7 @@ public class SQLReportGenerator {
     }
 
     if (commandLineArguments.createTables) {
-      createDBTables(commandLineArguments.jdbcConnection, commandLineArguments.jdbcDrivername);
+      createDBTables(commandLineArguments.jdbcConnection);
     }
 
     if (commandLineArguments.directory.size() != 1) {
@@ -241,8 +231,7 @@ public class SQLReportGenerator {
               .withExecutionDataFile(commandLineArguments.execFile)
               .withJDBCConnection(commandLineArguments.jdbcConnection)
               .withSuiteName(commandLineArguments.suiteName)
-              .withSuiteRunDate(commandLineArguments.suiteRunDate)
-              .withJDBCDrivername(commandLineArguments.jdbcDrivername);
+              .withSuiteRunDate(commandLineArguments.suiteRunDate);
       for (File cpElement : commandLineArguments.classesDirs) {
         generator.withClassesDirectory(cpElement);
       }
@@ -255,14 +244,13 @@ public class SQLReportGenerator {
   It would improve the size of the written table if the dimensions (branch, suite, package, etc) were in separate
   tables that point into a fact table containing the measurements.
    */
-  private static void createDBTables(String connectString, String driverName) {
+  private static void createDBTables(String connectString) {
     Connection reportConnection = null;
     String statement = null;
     try {
-      Class.forName(driverName);
       reportConnection = DriverManager.getConnection(connectString);
       Statement createTableStatement = reportConnection.createStatement();
-      String timestampTypename = driverName.contains("microsoft") ? "datetime" : "timestamp";
+      String timestampTypename = reportConnection.getClass().getName().contains("SQLServerConnection") ? "datetime" : "timestamp";
       statement = "CREATE TABLE PACKAGE_COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), class varchar(300), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
       makeTable(createTableStatement, statement);
 
@@ -273,8 +261,6 @@ public class SQLReportGenerator {
       int maxLinesInBytes = 12562 / 8;
       statement = "CREATE TABLE SOURCE_COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), filename varchar(200), line_coverage varbinary(" + maxLinesInBytes + "), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
       makeTable(createTableStatement, statement);
-    } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load " + driverName + " database driver", e);
     } catch (SQLException e) {
       logger.warning("Error during create table." + e.toString());
     } finally {

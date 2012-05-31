@@ -1,4 +1,4 @@
-package gw.jacoco;
+package gw.jacoco.sqlreport;
 
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.SessionInfo;

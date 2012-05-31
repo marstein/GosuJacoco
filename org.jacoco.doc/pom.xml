@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7-SNAPSHOT</version>
+    <version>0.5.7.gw.1</version>
     <relativePath>../org.jacoco.build</relativePath>
   </parent>
 
@@ -101,90 +101,88 @@
             </goals>
             <configuration>
               <target>
-                <typedef resource="org/jacoco/ant/antlib.xml"/>
-                <echo message="Coverage report"/>
+                <typedef resource="org/jacoco/ant/antlib.xml" />
+                <echo message="Coverage report" />
                 <report>
                   <executiondata>
-                    <fileset dir="../org.jacoco.agent.test/target" includes="jacoco.exec"/>
-                    <fileset dir="../org.jacoco.agent.rt.test/target" includes="jacoco.exec"/>
-                    <fileset dir="../org.jacoco.ant.test/target" includes="jacoco.exec"/>
-                    <fileset dir="../org.jacoco.core.test/target" includes="jacoco.exec"/>
-                    <fileset dir="../org.jacoco.report.test/target" includes="jacoco.exec"/>
-                    <fileset dir="../jacoco-maven-plugin.test/target" includes="jacoco.exec"/>
+                    <fileset dir="../org.jacoco.agent.test/target" includes="jacoco.exec" />
+                    <fileset dir="../org.jacoco.agent.rt.test/target" includes="jacoco.exec" />
+                    <fileset dir="../org.jacoco.ant.test/target" includes="jacoco.exec" />
+                    <fileset dir="../org.jacoco.core.test/target" includes="jacoco.exec" />
+                    <fileset dir="../org.jacoco.report.test/target" includes="jacoco.exec" />
+                    <fileset dir="../jacoco-maven-plugin.test/target" includes="jacoco.exec" />
                   </executiondata>
                   <structure name="JaCoCo">
                     <group name="org.jacoco.agent">
                       <classfiles>
                         <!-- Process class files only, ignore jacocoagent.jar -->
-                        <fileset dir="../org.jacoco.agent/target/classes" includes="**/*.class"/>
+                        <fileset dir="../org.jacoco.agent/target/classes" includes="**/*.class" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../org.jacoco.agent/src"/>
+                        <fileset dir="../org.jacoco.agent/src" />
                       </sourcefiles>
                     </group>
                     <group name="org.jacoco.agent.rt">
                       <classfiles>
-                        <fileset dir="../org.jacoco.agent.rt/target/classes"/>
+                        <fileset dir="../org.jacoco.agent.rt/target/classes" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../org.jacoco.agent.rt/src"/>
+                        <fileset dir="../org.jacoco.agent.rt/src" />
                       </sourcefiles>
                     </group>
                     <group name="org.jacoco.ant">
                       <classfiles>
-                        <fileset dir="../org.jacoco.ant/target/classes"/>
+                        <fileset dir="../org.jacoco.ant/target/classes" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../org.jacoco.ant/src"/>
+                        <fileset dir="../org.jacoco.ant/src" />
                       </sourcefiles>
                     </group>
                     <group name="org.jacoco.core">
                       <classfiles>
-                        <fileset dir="../org.jacoco.core/target/classes"/>
+                        <fileset dir="../org.jacoco.core/target/classes" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../org.jacoco.core/src"/>
+                        <fileset dir="../org.jacoco.core/src" />
                       </sourcefiles>
                     </group>
                     <group name="org.jacoco.report">
                       <classfiles>
-                        <fileset dir="../org.jacoco.report/target/classes"/>
+                        <fileset dir="../org.jacoco.report/target/classes" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../org.jacoco.report/src"/>
+                        <fileset dir="../org.jacoco.report/src" />
                       </sourcefiles>
                     </group>
                     <group name="jacoco-maven-plugin">
                       <classfiles>
-                        <fileset dir="../jacoco-maven-plugin/target/classes" excludes="**/HelpMojo.class"/>
+                        <fileset dir="../jacoco-maven-plugin/target/classes" excludes="**/HelpMojo.class" />
                       </classfiles>
                       <sourcefiles>
-                        <fileset dir="../jacoco-maven-plugin/src"/>
+                        <fileset dir="../jacoco-maven-plugin/src" />
                       </sourcefiles>
                     </group>
                   </structure>
-                  <html destdir="${project.build.directory}/coverage"
-                        footer="Code Coverage Report for JaCoCo ${project.version}"
-                        locale="en"/>
-                  <csv destfile="${project.build.directory}/coverage/coverage.csv"/>
-                  <xml destfile="${project.build.directory}/coverage/coverage.xml"/>
+                  <html destdir="${project.build.directory}/coverage" footer="Code Coverage Report for JaCoCo ${project.version}" locale="en" />
+                  <csv destfile="${project.build.directory}/coverage/coverage.csv" />
+                  <xml destfile="${project.build.directory}/coverage/coverage.xml" />
                 </report>
 
-                <echo message="JUnit report"/>
-                <mkdir dir="${project.build.directory}/junit"/>
+                <echo message="JUnit report" />
+                <mkdir dir="${project.build.directory}/junit" />
                 <junitreport todir="${project.build.directory}/junit">
-                  <fileset dir="../org.jacoco.agent.test/target" includes="surefire-reports/**/*.xml"/>
-                  <fileset dir="../org.jacoco.agent.rt.test/target" includes="surefire-reports/**/*.xml"/>
-                  <fileset dir="../org.jacoco.ant.test/target" includes="surefire-reports/**/*.xml"/>
-                  <fileset dir="../org.jacoco.core.test/target" includes="surefire-reports/**/*.xml"/>
-                  <fileset dir="../org.jacoco.report.test/target" includes="surefire-reports/**/*.xml"/>
+                  <fileset dir="../org.jacoco.agent.test/target" includes="surefire-reports/**/*.xml" />
+                  <fileset dir="../org.jacoco.agent.rt.test/target" includes="surefire-reports/**/*.xml" />
+                  <fileset dir="../org.jacoco.ant.test/target" includes="surefire-reports/**/*.xml" />
+                  <fileset dir="../org.jacoco.core.test/target" includes="surefire-reports/**/*.xml" />
+                  <fileset dir="../org.jacoco.report.test/target" includes="surefire-reports/**/*.xml" />
                   <report format="noframes" styledir="junitstyle" todir="${project.build.directory}/junit">
-                    <param name="qualified.bundle.version" expression="${qualified.bundle.version}"/>
-                    <param name="jacoco.home.url" expression="${jacoco.home.url}"/>
-                    <param name="copyright.years" expression="${copyright.years}"/>
+                    <param name="qualified.bundle.version" expression="${qualified.bundle.version}" />
+                    <param name="jacoco.home.url" expression="${jacoco.home.url}" />
+                    <param name="copyright.years" expression="${copyright.years}" />
                   </report>
                 </junitreport>
-                <move file="${project.build.directory}/junit/junit-noframes.html" tofile="${project.build.directory}/junit/index.html"/>
+                <move file="${project.build.directory}/junit/junit-noframes.html" tofile="${project.build.directory}/junit/index.html" />
               </target>
             </configuration>
           </execution>

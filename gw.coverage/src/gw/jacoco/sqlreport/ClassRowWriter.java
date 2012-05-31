@@ -9,7 +9,7 @@
  *    Brock Janiczak - initial API and implementation
  *
  *******************************************************************************/
-package gw.jacoco;
+package gw.jacoco.sqlreport;
 
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.ICounter;
@@ -42,7 +42,7 @@ class ClassRowWriter {
 
   private final ILanguageNames languageNames;
 
-  private static Logger logger = Logger.getLogger("gw.jacoco.ClassRowWriter");
+  private static Logger logger = Logger.getLogger("gw.jacoco.sqlreport.ClassRowWriter");
 
   private static final String NEW_LINE = System.getProperty("line.separator");
 
@@ -176,6 +176,7 @@ class ClassRowWriter {
   }
 
   // from http://bespokeblog.wordpress.com/2008/07/25/storing-and-retrieving-java-bitset-in-mysql-database/
+  // In Java 7 you can get the bitmap out directly...
   private static byte[] bitSetToByteArray(BitSet bits) {
     byte[] bytes = new byte[bits.length() / 8 + 1];
     for (int i = 0; i < bits.length(); i++) {

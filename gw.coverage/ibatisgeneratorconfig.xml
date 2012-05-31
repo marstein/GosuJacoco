@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <classPathEntry location="C:\Users\mstein\.m2\repository\gw\managed\sqljdbc4\4.0.2206.100\sqljdbc4-4.0.2206.100.jar" />
+
+    <context id="SQLServerTables" targetRuntime="MyBatis3">
+        <jdbcConnection driverClass="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+                        connectionURL="jdbc:sqlserver://devdb3:2012;DatabaseName=msteinpx;User=sa;Password=Gw_123">
+        </jdbcConnection>
+
+        <javaTypeResolver >
+            <property name="forceBigDecimals" value="false" />
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="gw.coverage" targetProject="gw.coverage\src">
+            <property name="enableSubPackages" value="true" />
+            <property name="trimStrings" value="true" />
+            <property name="immutable" value="true" />
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="sourceCoverageMap.xml"  targetProject="gw.coverage\src">
+            <property name="enableSubPackages" value="true" />
+        </sqlMapGenerator>
+
+        <javaClientGenerator type="XMLMAPPER" targetPackage="gw.coverage"  targetProject="gw.coverage\src">
+            <property name="enableSubPackages" value="true" />
+        </javaClientGenerator>
+
+        <table schema="dbo" tableName="SOURCE_COVERAGE" domainObjectName="SourceCoverage" enableInsert="false" >
+            <property name="useActualColumnNames" value="false"/>
+            <columnOverride column="package" property="packageName" />
+        </table>
+
+    </context>
+</generatorConfiguration>

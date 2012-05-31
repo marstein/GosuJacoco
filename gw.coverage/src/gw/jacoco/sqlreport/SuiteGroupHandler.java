@@ -1,4 +1,4 @@
-package gw.jacoco;
+package gw.jacoco.sqlreport;
 
 import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.IClassCoverage;
