@@ -28,7 +28,7 @@ public class SourceReportCommandLineArguments {
   @Parameter(names="-runDate", description = "suite run date YYYY/MM/DD", converter = ISO8601DateConverter.class)
   public Date suiteRunDate;
 
-  @Parameter(names = { "-jdbcconnection", "-jdbc" }, description = "JDBC connection string", required = true)
+  @Parameter(names = { "-jdbcconnection", "-jdbc" }, description = "JDBC connection string", required = false)
   public String jdbcConnection = "no jdbc connection";
 
   @Parameter(names = "-debug", description = "Debug mode")

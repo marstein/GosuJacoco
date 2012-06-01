@@ -2,22 +2,15 @@ package gw.jacoco.sourcereport;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import org.apache.ibatis.io.Resources;
+import gw.coverage.dbo.CoverageService;
+import gw.coverage.dbo.CoverageServiceImpl;
+import gw.coverage.dbo.CoveredFile;
 import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * User: mstein
@@ -35,13 +28,10 @@ public class SourceReport {
   private String branchName;
   private String changelist;
 
-  // jdbc database
+  // Have to figure out how to override ibatis config.
   private String connectString;
-  private String jdbcDrivername;
-  private Connection reportConnection;
 
-  //mybatis database
-  private SqlSessionFactory sessionFactory;
+  final static org.slf4j.Logger logger = LoggerFactory.getLogger(SourceReport.class);
 
   public static void main(final String[] args) throws IOException {
     final SourceReportCommandLineArguments commandLineArguments = new SourceReportCommandLineArguments();
@@ -67,94 +57,20 @@ public class SourceReport {
 
   // using the parameters gathered query the database for matching file records.
   private void create() {
-    try {
-      query();
-    } catch (SQLException e) {
-      throw new IllegalStateException("Error processing data!", e);
+    for (CoveredFile coveredFile : queryIbatis()) {
+      CoverageAnalysis coverageAnalysis = new CoverageAnalysis(coveredFile);
+      coverageAnalysis.analyze();
+      System.out.println(coverageAnalysis.toString());
     }
   }
 
 
-  private void queryIbatis(){
-    try {
-      Reader rdr = Resources.getResourceAsReader("SourceCoverageMapper.xml");
-      sessionFactory = new SqlSessionFactoryBuilder().build(rdr);
-      rdr.close();
-
-      SqlSession session = sessionFactory.openSession();
-        session.selectMap("", "");
-    } catch (IOException e) {
-      throw new IllegalStateException("database problem",e);
-    }
-  }
-
-
-  private ResultSet query() throws SQLException {
-    // Open the database connection.
-    try {
-      Class.forName(jdbcDrivername);
-      this.reportConnection = DriverManager.getConnection(connectString);
-    } catch (ClassNotFoundException e) {
-      throw new IllegalStateException("Could not load " + jdbcDrivername + " database driver", e);
-    } catch (SQLException e) {
-      throw new IllegalStateException("Could not get " + jdbcDrivername + " database connection to " + connectString, e);
-    }
-    // Query for relevant files coverage data.
-    String sql = "select " +
-            "BRANCH_COVERED,\n" +
-            "BRANCH_MISSED,\n" +
-            "COMPLEXITY_COVERED,\n" +
-            "COMPLEXITY_MISSED,\n" +
-            "INSTRUCTION_COVERED,\n" +
-            "INSTRUCTION_MISSED,\n" +
-            "LINE_COVERED,\n" +
-            "LINE_MISSED,\n" +
-            "METHOD_COVERED,\n" +
-            "METHOD_MISSED,\n" +
-            "line_coverage,\n" +
-            "changelist,\n" +
-            "branch,\n" +
-            "filename,\n" +
-            "package,\n" +
-            "suite,\n" +
-            "suite_run_date datetime " +
-            "from SOURCE_COVERAGE where true ";
-
-    if (apps != null) {
-      for (ListIterator<String> i = apps.listIterator(1); ; ) {
-        sql += " AND substring(suite, 1, 2) = '" + i.next() + "'";
-      }
-    }
-
-    if(changelist!=null){
-      sql += " and changelist='"+changelist+"'";
-    }
-
-    if(branchName!=null){
-      sql += " and branch='"+branchName+"'";
-    }
-
-    if (suiteRunDate!=null){
-      sql += " and suite_run_date=?";
-    }
-
-    sql += " ORDER BY package, filename";
-
-    PreparedStatement query = null;
-    ResultSet result = null;
-    try {
-      query = reportConnection.prepareStatement(sql);
-
-      if (suiteRunDate!=null){
-        query.setDate(1, new java.sql.Date(suiteRunDate.getTime()));
-      }
-
-      result = query.executeQuery();
-    } catch (SQLException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      throw e;
-    }
-    return result; // should return something that is easier to read...
+  private List<CoveredFile> queryIbatis() {
+    CoverageService service = new CoverageServiceImpl();
+    SqlSession session = service.openSession();
+    List<CoveredFile> coveredFileList = service.findAll(session);
+    logger.info("First five of " + coveredFileList.size() + ":\n" + coveredFileList.subList(1, 5).toString());
+    return coveredFileList;
   }
 
 
@@ -183,11 +99,6 @@ public class SourceReport {
 
   public SourceReport withJDBCConnection(String jdbcConnectionString) {
     this.connectString = jdbcConnectionString;
-    return this;
-  }
-
-  public SourceReport withJDBCDrivername(String jdbcDrivername) {
-    this.jdbcDrivername = jdbcDrivername;
     return this;
   }
 }

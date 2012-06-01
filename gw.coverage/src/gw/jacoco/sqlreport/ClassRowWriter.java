@@ -17,7 +17,11 @@ import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
 import org.jacoco.core.analysis.ISourceFileCoverage;
 import org.jacoco.report.ILanguageNames;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.Date;
@@ -31,7 +35,7 @@ import java.util.logging.Logger;
 /**
  * Writes summary coverage data into the database.
  */
-class ClassRowWriter {
+public class ClassRowWriter {
 
   private final Connection connection;
 
@@ -176,15 +180,48 @@ class ClassRowWriter {
   }
 
   // from http://bespokeblog.wordpress.com/2008/07/25/storing-and-retrieving-java-bitset-in-mysql-database/
+  // and http://www.experts-exchange.com/Programming/Misc/Q_20403619.html
   // In Java 7 you can get the bitmap out directly...
-  private static byte[] bitSetToByteArray(BitSet bits) {
-    byte[] bytes = new byte[bits.length() / 8 + 1];
+  public static byte[] bitSetToByteArray(BitSet bitSet) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream(bitSet.size());
+    try {
+      ObjectOutputStream oos = new ObjectOutputStream(baos);
+      oos.writeObject(bitSet);
+    }
+    catch (Exception ex) {
+      throw new IllegalStateException("Unexpected error converting BitSet to bytes", ex);
+    }
+    return baos.toByteArray();
+
+/*    byte[] bytes = new byte[bits.length()/8 + 1];
     for (int i = 0; i < bits.length(); i++) {
       if (bits.get(i)) {
-        bytes[bytes.length - i / 8 - 1] |= 1 << (i % 8);
+        bytes[bytes.length - i/8 - 1] |= 1 << (i%8);
       }
     }
-    return bytes;
+    return bytes;*/
   }
 
+  public static BitSet fromByteArray(byte[] bytes) {
+/*
+    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+    BitSet result;
+    try {
+      ObjectInputStream ois = new ObjectInputStream(bais);
+      result = (BitSet)ois.readObject();
+    }
+    catch (Exception ex) {
+      throw new IllegalStateException("Unexpected error converting bytes to BitSet", ex);
+    }
+    return result;
+*/
+
+    BitSet bits = new BitSet();
+    for (int i = 0; i < bytes.length*8; i++) {
+      if ((bytes[bytes.length - i/8 - 1] & (1 << (i%8))) != 0) {
+        bits.set(i);
+      }
+    }
+    return bits;
+  }
 }

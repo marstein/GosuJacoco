@@ -251,7 +251,7 @@ public class SQLReportGenerator {
       reportConnection = DriverManager.getConnection(connectString);
       Statement createTableStatement = reportConnection.createStatement();
       String timestampTypename = reportConnection.getClass().getName().contains("SQLServerConnection") ? "datetime" : "timestamp";
-      statement = "CREATE TABLE PACKAGE_COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), class varchar(300), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
+      statement = "CREATE TABLE PACKAGE_COVERAGE (id int identity(1,1), branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), class varchar(300), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
       makeTable(createTableStatement, statement);
 
       // The source_coverage table stores coverage on a file and a line level. Covered lines are a 1 in the line_coverage bitmap.
@@ -259,7 +259,7 @@ public class SQLReportGenerator {
       // $ find . -name '*.java' -exec wc -l {} \;|awk 'BEGIN {c=0; max=0} {c+=$1; if(max<$1)max=$1} END {print "total lines=",c,"max file line count=", max}'
       // total lines= 8490978 max file line count= 12562
       int maxLinesInBytes = 12562 / 8;
-      statement = "CREATE TABLE SOURCE_COVERAGE (branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), filename varchar(200), line_coverage varbinary(" + maxLinesInBytes + "), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
+      statement = "CREATE TABLE SOURCE_COVERAGE (id int identity(1,1), branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), filename varchar(200), line_coverage varbinary(" + maxLinesInBytes + "), suite_run_date " + timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
       makeTable(createTableStatement, statement);
     } catch (SQLException e) {
       logger.warning("Error during create table." + e.toString());
