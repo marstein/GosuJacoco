@@ -15,25 +15,25 @@ public class CoverageRun {
 
   private Date suiteRunDate;
 
-  private Integer instructionMissed;
+  Integer instructionMissed;
 
-  private Integer instructionCovered;
+  Integer instructionCovered;
 
-  private Integer branchMissed;
+  Integer branchMissed;
 
-  private Integer branchCovered;
+  Integer branchCovered;
 
-  private Integer lineMissed;
+  Integer lineMissed;
 
-  private Integer lineCovered;
+  Integer lineCovered;
 
-  private Integer complexityMissed;
+  Integer complexityMissed;
 
-  private Integer complexityCovered;
+  Integer complexityCovered;
 
-  private Integer methodMissed;
+  Integer methodMissed;
 
-  private Integer methodCovered;
+  Integer methodCovered;
 
   private byte[] lineCoverage;
 

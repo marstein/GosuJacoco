@@ -1,10 +1,8 @@
 package gw.jacoco.sourcereport;
 
 import gw.coverage.dbo.CoverageRun;
+import gw.coverage.dbo.CoverageRunSummary;
 import gw.coverage.dbo.CoveredFile;
-import gw.jacoco.sqlreport.ClassRowWriter;
-
-import java.util.BitSet;
 
 /**
  * Analyze the runs against a file.
@@ -15,35 +13,48 @@ public class CoverageAnalysis {
 
   private CoveredFile coveredFile;
 
-  private BitSet nonPLLineCoverage = new BitSet();
-  private BitSet thePLLineCoverage = new BitSet();
+  private CoverageRunSummary nonPLRuns;
 
-  public CoverageAnalysis(CoveredFile coveredFile){
+  private CoverageRunSummary thePLRuns;
+
+  public CoverageAnalysis(CoveredFile coveredFile) {
     this.coveredFile = coveredFile;
+    nonPLRuns = new CoverageRunSummary(coveredFile, "non_PL");
+    thePLRuns = new CoverageRunSummary(coveredFile, "PL");
   }
 
-  public void analyze(){
+  public CoverageRunSummary getNonPLRuns() {
+    return nonPLRuns;
+  }
+
+  public CoverageRunSummary getThePLRuns() {
+    return thePLRuns;
+  }
+
+  public CoverageRunSummary analyze() {
     // Take the non-PL suites and OR the line coverage. Then do the same for the PL classes.
-    for (CoverageRun coverageRun: coveredFile.getRunList()) {
+    for (CoverageRun coverageRun : coveredFile.getRunList()) {
       if (coverageRun.getSuite().toLowerCase().startsWith("pl")) {
-        thePLLineCoverage.or(ClassRowWriter.fromByteArray(coverageRun.getLineCoverage()));
+        thePLRuns.addRun(coverageRun);
       } else {
-        nonPLLineCoverage.or(ClassRowWriter.fromByteArray(coverageRun.getLineCoverage()));
+        nonPLRuns.addRun(coverageRun);
       }
     }
+    return nonPLRuns.compareWith(thePLRuns, "pl - non_pl");
   }
 
   @Override
   public String toString() {
-    BitSet linesNotCoveredByPLTests = new BitSet(nonPLLineCoverage.size());
-    linesNotCoveredByPLTests.or(nonPLLineCoverage); // set to nonPLLineCoverage
-    linesNotCoveredByPLTests.andNot(thePLLineCoverage);
+    CoverageLineSet linesNotCoveredByPLTests = new CoverageLineSet(nonPLRuns.getCoveredLineSet().size());
+    linesNotCoveredByPLTests.or(nonPLRuns.getCoveredLineSet()); // set to nonPLLineCoverage
+    linesNotCoveredByPLTests.andNot(thePLRuns.getCoveredLineSet());
     return "CoverageAnalysis{" +
-            "coveredFile=" + coveredFile +
-            "}\n" +
-            "non-PL:\t"+ nonPLLineCoverage.toString() +
-            "\nPL:\t"+ thePLLineCoverage.toString() +
-            "\nLines not covered by PL tests: "+linesNotCoveredByPLTests.cardinality()+" lines: "+linesNotCoveredByPLTests.toString()
+            "coveredFile=" + coveredFile + ", " +
+            "nonPLCoverage=" + nonPLRuns.toString() + ", " +
+            "PLCoverage=" + thePLRuns.toString() + ", " +
+            "\nLinesNotCoveredByPL=" + linesNotCoveredByPLTests.cardinality() + ", " +
+            "\nLineCoverageDifference\n" + linesNotCoveredByPLTests.toString() +
+            "}\n"
             ;
   }
 }

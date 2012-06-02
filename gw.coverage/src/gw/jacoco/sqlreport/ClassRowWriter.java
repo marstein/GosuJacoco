@@ -11,11 +11,14 @@
  *******************************************************************************/
 package gw.jacoco.sqlreport;
 
+import gw.jacoco.sourcereport.CoverageLineSet;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.ICounter;
 import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
 import org.jacoco.core.analysis.ISourceFileCoverage;
 import org.jacoco.report.ILanguageNames;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,7 +33,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.BitSet;
-import java.util.logging.Logger;
 
 /**
  * Writes summary coverage data into the database.
@@ -46,7 +48,7 @@ public class ClassRowWriter {
 
   private final ILanguageNames languageNames;
 
-  private static Logger logger = Logger.getLogger("gw.jacoco.sqlreport.ClassRowWriter");
+  private static Logger logger = LoggerFactory.getLogger("gw.jacoco.sqlreport.ClassRowWriter");
 
   private static final String NEW_LINE = System.getProperty("line.separator");
 
@@ -74,7 +76,7 @@ public class ClassRowWriter {
    */
   public void writeRow(String name, String branchName, final String changelist, final String suiteName, final String packageName, final IClassCoverage node, final Date suiteRunDate) throws IOException {
     final String className = languageNames.getClassName(node.getName(), node.getSignature(), node.getSuperName(), node.getInterfaceNames());
-    logger.fine("writing class " + className + " to database");
+    logger.debug("writing class " + className + " to database");
     StringBuilder sql = new StringBuilder().append("INSERT INTO PACKAGE_COVERAGE (");
     sql.append("branch, changelist, ");
     for (final CounterEntity entity : COUNTERS) {
@@ -99,7 +101,7 @@ public class ClassRowWriter {
     } else {
       sql.append("\'").append(sdf.format(suiteRunDate)).append("')");
     }
-    logger.finer(sql.toString());
+    logger.trace(sql.toString());
     Statement statement = null;
     try {
       statement = connection.createStatement();
@@ -116,7 +118,7 @@ public class ClassRowWriter {
    */
   public void writeSourceRow(final String bundleName, final String branchName, final String changelist, final String suiteName, final String packageName, final ISourceFileCoverage sourceCoverage, final Date suiteRunDate) {
     final String fileName = sourceCoverage.getName();
-    logger.fine("writing file " + fileName + " to database");
+    logger.debug("writing file " + fileName + " to database");
 
     PreparedStatement statement = null;
     try {
@@ -163,7 +165,7 @@ public class ClassRowWriter {
       }
     }
     sql.append(")");
-    logger.finer(sql.toString());
+    logger.trace(sql.toString());
     return sql.toString();
   }
 
@@ -175,53 +177,7 @@ public class ClassRowWriter {
       lineCoverage.set(lineNumber, status == ICounter.FULLY_COVERED || status == ICounter.PARTLY_COVERED);
     }
     Blob blob = connection.createBlob();
-    blob.setBytes(1, bitSetToByteArray(lineCoverage));
+    blob.setBytes(1, CoverageLineSet.bitSetToByteArray(lineCoverage));
     return blob;
-  }
-
-  // from http://bespokeblog.wordpress.com/2008/07/25/storing-and-retrieving-java-bitset-in-mysql-database/
-  // and http://www.experts-exchange.com/Programming/Misc/Q_20403619.html
-  // In Java 7 you can get the bitmap out directly...
-  public static byte[] bitSetToByteArray(BitSet bitSet) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream(bitSet.size());
-    try {
-      ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(bitSet);
-    }
-    catch (Exception ex) {
-      throw new IllegalStateException("Unexpected error converting BitSet to bytes", ex);
-    }
-    return baos.toByteArray();
-
-/*    byte[] bytes = new byte[bits.length()/8 + 1];
-    for (int i = 0; i < bits.length(); i++) {
-      if (bits.get(i)) {
-        bytes[bytes.length - i/8 - 1] |= 1 << (i%8);
-      }
-    }
-    return bytes;*/
-  }
-
-  public static BitSet fromByteArray(byte[] bytes) {
-/*
-    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-    BitSet result;
-    try {
-      ObjectInputStream ois = new ObjectInputStream(bais);
-      result = (BitSet)ois.readObject();
-    }
-    catch (Exception ex) {
-      throw new IllegalStateException("Unexpected error converting bytes to BitSet", ex);
-    }
-    return result;
-*/
-
-    BitSet bits = new BitSet();
-    for (int i = 0; i < bytes.length*8; i++) {
-      if ((bytes[bytes.length - i/8 - 1] & (1 << (i%8))) != 0) {
-        bits.set(i);
-      }
-    }
-    return bits;
   }
 }

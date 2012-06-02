@@ -2,6 +2,7 @@ package gw.jacoco.sourcereport;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import gw.coverage.dbo.CoverageRunSummary;
 import gw.coverage.dbo.CoverageService;
 import gw.coverage.dbo.CoverageServiceImpl;
 import gw.coverage.dbo.CoveredFile;
@@ -59,8 +60,11 @@ public class SourceReport {
   private void create() {
     for (CoveredFile coveredFile : queryIbatis()) {
       CoverageAnalysis coverageAnalysis = new CoverageAnalysis(coveredFile);
-      coverageAnalysis.analyze();
-      System.out.println(coverageAnalysis.toString());
+      CoverageRunSummary summary = coverageAnalysis.analyze();
+      logger.debug(coverageAnalysis.toString());
+      System.out.println(coverageAnalysis.getNonPLRuns().toCSV());
+      System.out.println(coverageAnalysis.getThePLRuns().toCSV());
+      System.out.println(summary.toCSV());
     }
   }
 
@@ -69,7 +73,7 @@ public class SourceReport {
     CoverageService service = new CoverageServiceImpl();
     SqlSession session = service.openSession();
     List<CoveredFile> coveredFileList = service.findAll(session);
-    logger.info("First five of " + coveredFileList.size() + ":\n" + coveredFileList.subList(1, 5).toString());
+    session.close();
     return coveredFileList;
   }
 
