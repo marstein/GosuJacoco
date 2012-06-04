@@ -14,7 +14,7 @@
 
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7.gw.1</version>
+    <version>0.5.7.gw.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>JaCoCo</name>
@@ -96,9 +96,9 @@
     </modules>
 
     <!-- <scm> -->
-    <!--     <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</connection> -->
-    <!--     <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</developerConnection> -->
-    <!--     <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</url> -->
+    <!--     <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.2-SNAPSHOT/org.jacoco.build</connection> -->
+    <!--     <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.2-SNAPSHOT/org.jacoco.build</developerConnection> -->
+    <!--     <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.2-SNAPSHOT/org.jacoco.build</url> -->
     <!-- </scm> -->
     <scm>
         <connection>scm:git://gh/mstein/jacoco</connection>
