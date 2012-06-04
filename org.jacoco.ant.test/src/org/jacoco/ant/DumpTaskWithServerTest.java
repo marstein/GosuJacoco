@@ -18,6 +18,7 @@ import junit.framework.TestSuite;
 import org.apache.ant.antunit.junit3.AntUnitSuite;
 import org.apache.ant.antunit.junit4.AntUnitSuiteRunner;
 import org.junit.runner.RunWith;
+/*
 
 @RunWith(AntUnitSuiteRunner.class)
 public class DumpTaskWithServerTest {
@@ -30,3 +31,4 @@ public class DumpTaskWithServerTest {
 		return new AntUnitSuite(file, DumpTaskWithServerTest.class);
 	}
 }
+*/
