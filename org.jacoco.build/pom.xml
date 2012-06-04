@@ -95,10 +95,14 @@
         <module>../gw.coverage</module>
     </modules>
 
+    <!-- <scm> -->
+    <!--     <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</connection> -->
+    <!--     <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</developerConnection> -->
+    <!--     <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</url> -->
+    <!-- </scm> -->
     <scm>
-        <connection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</connection>
-        <developerConnection>scm:svn:https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</developerConnection>
-        <url>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags/org.jacoco.build-0.5.7.gw.1/org.jacoco.build</url>
+        <connection>scm:git://gh/mstein/jacoco</connection>
+        <developerConnection>scm:git:git@gh:mstein/jacoco.git</developerConnection>
     </scm>
     <issueManagement>
         <system>Trac</system>
@@ -326,7 +330,7 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.1</version>
                     <configuration>
-                        <tagBase>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags</tagBase>
+                        <!--<tagBase>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags</tagBase>-->
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <useReleaseProfile>false</useReleaseProfile>
@@ -703,7 +707,7 @@
                                 <configuration>
                                     <signature>
                                         <groupId>org.codehaus.mojo.signature</groupId>
-                                        <artifactId>java15</artifactId>
+                                        <artifactId>java16</artifactId>
                                         <version>1.0</version>
                                     </signature>
                                 </configuration>
