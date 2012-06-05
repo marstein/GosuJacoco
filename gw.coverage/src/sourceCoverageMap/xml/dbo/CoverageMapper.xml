@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="gw.coverage.dbo.SourceCoverageMapper">
+<mapper namespace="gw.coverage.dbo.CoverageMapper">
 
     <resultMap id="CoveredFileBaseResultMap" type="gw.coverage.dbo.CoveredFile">
-        <!--<id property="id" column="id" javaType="int"/>-->
         <result property="packageName" column="package" javaType="java.lang.String" jdbcType="VARCHAR"/>
         <result property="fileName" column="filename" javaType="java.lang.String" jdbcType="VARCHAR"/>
         <collection property="runList" ofType="gw.coverage.dbo.CoverageRun">
-            <!--<id property="id" column="id" javaType="Integer"/>-->
             <result property="branch" column="branch" javaType="String"/>
             <result property="changelist" column="changelist" javaType="String"/>
             <result property="suite" column="suite" javaType="String"/>
             <result property="suiteRunDate" column="suite_run_date" javaType="java.util.Date"/>
             <result property="instructionMissed" column="instruction_missed" javaType="int"/>
-            <result property="instructionCovered"  column="instruction_covered" javaType="int"/>
+            <result property="instructionCovered" column="instruction_covered" javaType="int"/>
             <result property="branchMissed" column="branch_missed" javaType="int"/>
             <result property="branchCovered" column="branch_covered" javaType="int"/>
             <result property="lineMissed" column="line_missed" javaType="int"/>
@@ -22,16 +20,37 @@
             <result property="complexityCovered" column="complexity_covered" javaType="int"/>
             <result property="methodMissed" column="method_missed" javaType="int"/>
             <result property="methodCovered" column="method_covered" javaType="int"/>
-            <result property="lineCoverage" column="line_coverage"/> <!-- leave type off for auto detection seems to work -->
+            <result property="lineCoverage" column="line_coverage"/>
+            <!-- leaving the type off in lineCoverage for auto detection seems to work -->
         </collection>
     </resultMap>
 
-    <select id="gw.coverage.dbo.CoveredFile.selectRunListsForFileNested"
+    <select id="gw.coverage.dbo.CoverageMapper.findAllCoveredFiles"
             resultMap="CoveredFileBaseResultMap" resultType="gw.coverage.dbo.CoveredFile"
-            parameterType="String">
-        select  filename, package, changelist, branch, suite, suite_run_date,
-          BRANCH_COVERED, BRANCH_MISSED, COMPLEXITY_COVERED, COMPLEXITY_MISSED, INSTRUCTION_COVERED,
-          INSTRUCTION_MISSED, LINE_COVERED, LINE_MISSED, METHOD_COVERED, METHOD_MISSED, line_coverage
+            parameterType="map">
+        select filename, package, changelist, branch, suite, suite_run_date,
+        BRANCH_COVERED, BRANCH_MISSED, COMPLEXITY_COVERED, COMPLEXITY_MISSED, INSTRUCTION_COVERED,
+        INSTRUCTION_MISSED, LINE_COVERED, LINE_MISSED, METHOD_COVERED, METHOD_MISSED, line_coverage
         from source_coverage
+        <where>
+            <if test="branch != null">
+                branch = #{branch}
+            </if>
+            <if test="changelist != null">
+                AND changelist = #{changelist}
+            </if>
+            <if test="file != null">
+                AND filename LIKE #{file}
+            </if>
+            <if test="runDate != null">
+                AND suite_run_date = #{runDate}
+            </if>
+            <if test="apps != null">
+                AND
+                <foreach collection="apps" item="item" open="(" separator="OR " close=" OR SUBSTRING(suite,1,2)='pl' )">
+                    LOWER(SUBSTRING(suite, 1, 2)) = #{item}
+                </foreach>
+            </if>
+        </where>
     </select>
 </mapper>

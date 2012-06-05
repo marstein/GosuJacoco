@@ -2,15 +2,18 @@ package gw.jacoco.sourcereport;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import gw.coverage.dbo.CoverageMapper;
 import gw.coverage.dbo.CoverageRunSummary;
-import gw.coverage.dbo.CoverageService;
-import gw.coverage.dbo.CoverageServiceImpl;
 import gw.coverage.dbo.CoveredFile;
+import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Date;
+import java.io.Reader;
+import java.sql.Date;
 import java.util.List;
 
 /**
@@ -28,6 +31,7 @@ public class SourceReport {
   private Date suiteRunDate;
   private String branchName;
   private String changelist;
+  private String filePattern;
 
   // Have to figure out how to override ibatis config.
   private String connectString;
@@ -52,14 +56,23 @@ public class SourceReport {
             .withChangelist(commandLineArguments.changeList)
             .withJDBCConnection(commandLineArguments.jdbcConnection)
             .withSuiteRunDate(commandLineArguments.suiteRunDate)
+            .withFilePattern(commandLineArguments.filePattern)
             .withApps(commandLineArguments.apps);
     report.create();
   }
 
+  private SourceReport withFilePattern(String filePattern) {
+    this.filePattern = filePattern;
+    return this;
+  }
+
   // using the parameters gathered query the database for matching file records.
   private void create() {
+    logger.info("Reporting with Parameters" + toString());
+    initializeIBatis();
+    System.out.println(CoverageRunSummary.toCSVTitle());
     for (CoveredFile coveredFile : queryIbatis()) {
-      CoverageAnalysis coverageAnalysis = new CoverageAnalysis(coveredFile);
+      CoverageAnalysis coverageAnalysis = new CoverageAnalysis(this, coveredFile);
       CoverageRunSummary summary = coverageAnalysis.analyze();
       logger.debug(coverageAnalysis.toString());
       System.out.println(coverageAnalysis.getNonPLRuns().toCSV());
@@ -70,13 +83,36 @@ public class SourceReport {
 
 
   private List<CoveredFile> queryIbatis() {
-    CoverageService service = new CoverageServiceImpl();
-    SqlSession session = service.openSession();
-    List<CoveredFile> coveredFileList = service.findAll(session);
-    session.close();
+    SqlSession session = null;
+    List<CoveredFile> coveredFileList = null;
+    try {
+      session = openSession();
+      CoverageMapper mapper = session.getMapper(CoverageMapper.class);
+      coveredFileList = mapper.findAllCoveredFiles(branchName, changelist, apps, filePattern, suiteRunDate);
+    } finally {
+      if (session != null) {
+        session.close();
+      }
+    }
     return coveredFileList;
   }
 
+  private SqlSessionFactory sessionFactory;
+
+  private void initializeIBatis() {
+    Reader resourceAsReader = null;
+    try {
+      resourceAsReader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
+      sessionFactory = new SqlSessionFactoryBuilder().build(resourceAsReader);
+      resourceAsReader.close();
+    } catch (IOException e) {
+      throw new IllegalStateException("could not initialize ibatis", e);
+    }
+  }
+
+  public SqlSession openSession() {
+    return sessionFactory.openSession();
+  }
 
   public SourceReport() {
   }
@@ -104,5 +140,17 @@ public class SourceReport {
   public SourceReport withJDBCConnection(String jdbcConnectionString) {
     this.connectString = jdbcConnectionString;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return "SourceReport{" +
+            "apps=" + apps +
+            ", suiteRunDate=" + suiteRunDate +
+            ", branchName='" + branchName + '\'' +
+            ", changelist='" + changelist + '\'' +
+            ", filePattern='" + filePattern + '\'' +
+            ", connectString='" + connectString + '\'' +
+            '}';
   }
 }

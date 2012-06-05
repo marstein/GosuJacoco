@@ -37,16 +37,13 @@ public class CoverageRun {
 
   private byte[] lineCoverage;
 
-  private int id;
-
   public CoverageRun() {
   }
 
-  public CoverageRun(Integer id, String branch, String changelist, String suite, Date suiteRunDate,
+  public CoverageRun(String branch, String changelist, String suite, Date suiteRunDate,
                      Integer instructionMissed, Integer instructionCovered, Integer branchMissed, Integer branchCovered, Integer lineMissed,
                      Integer lineCovered, Integer complexityMissed, Integer complexityCovered, Integer methodMissed, Integer methodCovered,
                      Object lineCoverage) {
-    this.id = id;
     this.branch = branch;
     this.changelist = changelist;
     this.suite = suite;
@@ -62,10 +59,6 @@ public class CoverageRun {
     this.methodMissed = methodMissed;
     this.methodCovered = methodCovered;
     this.lineCoverage = (byte[]) lineCoverage;
-  }
-
-  public int getId() {
-    return id;
   }
 
   public String getBranch() {
@@ -188,10 +181,6 @@ public class CoverageRun {
     this.lineCoverage = lineCoverage;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
   @Override
   public String toString() {
     return "CoverageRun{" +
@@ -210,7 +199,6 @@ public class CoverageRun {
             ", methodMissed=" + methodMissed +
             ", methodCovered=" + methodCovered +
             ", lineCoverage=" + lineCoverage +
-            ", id=" + id +
             '}';
   }
 }

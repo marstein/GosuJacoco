@@ -3,7 +3,7 @@ package gw.coverage.dbo;
 import gw.jacoco.sourcereport.CoverageLineSet;
 
 /**
- * Hold non-pl, PL coverage averages.
+ * Hold non-pl and PL coverage averages and OR-ed coverage line-level bitmaps.
  */
 public class CoverageRunSummary extends CoverageRun {
 
@@ -35,6 +35,10 @@ public class CoverageRunSummary extends CoverageRun {
     this.coveredLineSet = new CoverageLineSet();
   }
 
+  /**
+   * Update the average with another run. OR the line coverage bitmap with what we have.
+   * @param coverageRun
+   */
   public void addRun(CoverageRun coverageRun) {
     getCoveredLineSet().or(CoverageLineSet.fromByteArray(coverageRun.getLineCoverage()));
 
@@ -51,9 +55,9 @@ public class CoverageRunSummary extends CoverageRun {
   }
 
   /**
-   * Compare this run with another run.
+   * Compare this run with another run. Subtract the otherRun and AND NOT the line coverage bitmap.
    *
-   * @return
+   * @return a new coverage summary with the subtracted averages and the AND NOT bits.
    */
   public CoverageRunSummary compareWith(CoverageRunSummary otherRun, String comparisonTitle) {
     CoverageRunSummary summary = new CoverageRunSummary(this.coveredFile, comparisonTitle);
@@ -73,6 +77,24 @@ public class CoverageRunSummary extends CoverageRun {
     summary.coveredLineSet = linesNotCoveredByPLTests;
 
     return summary;
+  }
+
+
+  public static String toCSVTitle() {
+    return "title, " +
+            "PackageName, " +
+            "FileName, " +
+            "lineMissed, " +
+            "lineCovered, " +
+            "instructionMissed, " +
+            "instructionCovered, " +
+            "branchMissed, " +
+            "branchCovered, " +
+            "complexityMissed, " +
+            "complexityCovered, " +
+            "methodMissed, " +
+            "methodCovered, " +
+            "line coverage difference CoveredLineSet cardinality";
   }
 
 
@@ -96,6 +118,7 @@ public class CoverageRunSummary extends CoverageRun {
   @Override
   public String toString() {
     return "CoverageRunSummary{" +
+            "CoverageRun=" + super.toString()+
             "runsAdded=" + runsAdded +
             ", coveredLineSet=\n" + coveredLineSet +
             "}";

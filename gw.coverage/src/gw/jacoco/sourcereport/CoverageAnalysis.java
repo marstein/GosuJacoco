@@ -17,8 +17,12 @@ public class CoverageAnalysis {
 
   private CoverageRunSummary thePLRuns;
 
-  public CoverageAnalysis(CoveredFile coveredFile) {
+  // The parameters for this report, like branch name, etc.
+  private SourceReport sourceReport;
+
+  public CoverageAnalysis(SourceReport sourceReport, CoveredFile coveredFile) {
     this.coveredFile = coveredFile;
+    this.sourceReport = sourceReport;
     nonPLRuns = new CoverageRunSummary(coveredFile, "non_PL");
     thePLRuns = new CoverageRunSummary(coveredFile, "PL");
   }
@@ -45,15 +49,11 @@ public class CoverageAnalysis {
 
   @Override
   public String toString() {
-    CoverageLineSet linesNotCoveredByPLTests = new CoverageLineSet(nonPLRuns.getCoveredLineSet().size());
-    linesNotCoveredByPLTests.or(nonPLRuns.getCoveredLineSet()); // set to nonPLLineCoverage
-    linesNotCoveredByPLTests.andNot(thePLRuns.getCoveredLineSet());
     return "CoverageAnalysis{" +
             "coveredFile=" + coveredFile + ", " +
             "nonPLCoverage=" + nonPLRuns.toString() + ", " +
             "PLCoverage=" + thePLRuns.toString() + ", " +
-            "\nLinesNotCoveredByPL=" + linesNotCoveredByPLTests.cardinality() + ", " +
-            "\nLineCoverageDifference\n" + linesNotCoveredByPLTests.toString() +
+            "\nPL-nonPL=" + thePLRuns.compareWith(nonPLRuns, "comparison pl-nonpl").toString() +
             "}\n"
             ;
   }
