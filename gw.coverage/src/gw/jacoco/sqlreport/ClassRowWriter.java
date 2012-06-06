@@ -11,7 +11,10 @@
  *******************************************************************************/
 package gw.jacoco.sqlreport;
 
+import gw.coverage.dbo.Branch;
+import gw.coverage.dbo.CoverageMapper;
 import gw.jacoco.sourcereport.CoverageLineSet;
+import org.apache.ibatis.session.SqlSession;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.ICounter;
 import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
@@ -39,7 +42,7 @@ import java.util.BitSet;
  */
 public class ClassRowWriter {
 
-  private final Connection connection;
+  private final CoverageMapper mapper;
 
   // CREATE TABLE coverage
   private static final CounterEntity[] COUNTERS = {CounterEntity.INSTRUCTION,
@@ -56,12 +59,14 @@ public class ClassRowWriter {
    * Creates a new row connection1 that writes class information to the given CSV
    * connection1.
    *
+   *
+   *
    * @param languageNames converter for Java identifiers
    * @throws java.io.IOException in case of problems with the connection1
    */
-  public ClassRowWriter(final Connection connection1, final ILanguageNames languageNames) throws IOException {
+  public ClassRowWriter(final CoverageMapper session, final ILanguageNames languageNames) throws IOException {
     this.languageNames = languageNames;
-    this.connection = connection1;
+    this.mapper = session;
   }
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
@@ -77,41 +82,40 @@ public class ClassRowWriter {
   public void writeRow(String name, String branchName, final String changelist, final String suiteName, final String packageName, final IClassCoverage node, final Date suiteRunDate) throws IOException {
     final String className = languageNames.getClassName(node.getName(), node.getSignature(), node.getSuperName(), node.getInterfaceNames());
     logger.debug("writing class " + className + " to database");
-    StringBuilder sql = new StringBuilder().append("INSERT INTO PACKAGE_COVERAGE (");
-    sql.append("branch, changelist, ");
-    for (final CounterEntity entity : COUNTERS) {
-      sql.append(entity.name()).append("_MISSED, ");
-      sql.append(entity.name()).append("_COVERED, ");
-    }
-    sql.append("package, suite, class, suite_run_date) VALUES (");
 
-    // values follow
-
-    sql.append("'").append(branchName).append("', '").append(changelist).append("', ");
-    for (final CounterEntity entity : COUNTERS) {
-      final ICounter counter = node.getCounter(entity);
-      sql.append(counter.getMissedCount()).append(", ");
-      sql.append(counter.getCoveredCount()).append(", ");
+    // Find the dimension IDs.
+    Integer branch_id;
+    if (null == (branch_id = mapper.selectBranch(branchName))) {
+      mapper.insertBranch(branchName);
+      branch_id = mapper.selectBranch(branchName);
     }
-    sql.append("\'").append(packageName).append("\', ");
-    sql.append("\'").append(suiteName).append("\', ");
-    sql.append("\'").append(className).append("\', ");
-    if (suiteRunDate == null) {
-      sql.append("null)");
-    } else {
-      sql.append("\'").append(sdf.format(suiteRunDate)).append("')");
+    Integer suite_id=null;
+    if (null == (suite_id = mapper.selectSuite(suiteName))) {
+       mapper.insertSuite(suiteName);
+      suite_id = mapper.selectSuite(suiteName);
     }
-    logger.trace(sql.toString());
-    Statement statement = null;
-    try {
-      statement = connection.createStatement();
-      statement.executeUpdate(sql.toString());
-    } catch (SQLException e) {
-      throw new IllegalStateException("Error writing to database " + statement, e);
+    Integer changelist_id=null;
+    if (null == (changelist_id = mapper.selectChangelist(changelist))) {
+      mapper.insertChangelist(changelist);
+      changelist_id = mapper.selectChangelist(changelist);
     }
+    Integer package_id=null;
+    if (null == (package_id = mapper.selectPackage(packageName))) {
+      mapper.insertPackage(packageName);
+      package_id = mapper.selectPackage(packageName);
+    }
+    Integer class_id=null;
+    if (null == (class_id = mapper.selectClass(className))) {
+      mapper.insertClass(className);
+      class_id = mapper.selectClass(className);
+    }
+    mapper.insertPackageCoverage(branch_id, changelist_id, suite_id, package_id, class_id, suiteRunDate,
+            node.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(), node.getCounter(CounterEntity.INSTRUCTION).getMissedCount(),
+            node.getCounter(CounterEntity.BRANCH).getCoveredCount(), node.getCounter(CounterEntity.BRANCH).getMissedCount(),
+            node.getCounter(CounterEntity.LINE).getCoveredCount(), node.getCounter(CounterEntity.LINE).getMissedCount(),
+            node.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(), node.getCounter(CounterEntity.COMPLEXITY).getMissedCount(),
+            node.getCounter(CounterEntity.METHOD).getCoveredCount(), node.getCounter(CounterEntity.METHOD).getMissedCount());
   }
-
-  static String insertSourceSql = insertSourceCoverageStatement();
 
   /*
   Same as writeRow, only we write a bitmap of line coverage to the database.
@@ -120,64 +124,48 @@ public class ClassRowWriter {
     final String fileName = sourceCoverage.getName();
     logger.debug("writing file " + fileName + " to database");
 
-    PreparedStatement statement = null;
-    try {
-      statement = connection.prepareStatement(insertSourceSql.toString());
-      int parameterCount = 1;
-      statement.setString(parameterCount++, branchName);
-      statement.setString(parameterCount++, changelist);
-      statement.setString(parameterCount++, suiteName);
-      statement.setString(parameterCount++, packageName);
-      statement.setString(parameterCount++, fileName);
-      statement.setBlob(parameterCount++, buildLineCoverageBitmap(connection, sourceCoverage));
-      statement.setDate(parameterCount++, suiteRunDate);
-      for (final CounterEntity entity3 : COUNTERS) {
-        final ICounter counter = sourceCoverage.getCounter(entity3);
-        statement.setInt(parameterCount++, counter.getMissedCount());
-        statement.setInt(parameterCount++, counter.getCoveredCount());
-      }
-      statement.executeUpdate();
-    } catch (SQLException e) {
-      throw new IllegalStateException("Error writing to database " + insertSourceSql, e);
+    // Find the dimension IDs.
+    Integer branch_id;
+    if (null == (branch_id = mapper.selectBranch(branchName))) {
+      mapper.insertBranch(branchName);
+      branch_id = mapper.selectBranch(branchName);
     }
+    Integer suite_id=null;
+    if (null == (suite_id = mapper.selectSuite(suiteName))) {
+      mapper.insertSuite(suiteName);
+      suite_id = mapper.selectSuite(suiteName);
+    }
+    Integer changelist_id=null;
+    if (null == (changelist_id = mapper.selectChangelist(changelist))) {
+      mapper.insertChangelist(changelist);
+      changelist_id = mapper.selectChangelist(changelist);
+    }
+    Integer package_id=null;
+    if (null == (package_id = mapper.selectPackage(packageName))) {
+      mapper.insertPackage(packageName);
+      package_id = mapper.selectPackage(packageName);
+    }
+    Integer filename_id=null;
+    if (null == (filename_id = mapper.selectFilename(fileName))) {
+      mapper.insertFilename(fileName);
+      filename_id = mapper.selectFilename(fileName);
+    }
+
+    mapper.insertSourceCoverage(branch_id.intValue(), changelist_id.intValue(), suite_id.intValue(), package_id.intValue(), filename_id.intValue(), buildLineCoverageBytes(sourceCoverage), suiteRunDate,
+            sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getMissedCount(),
+            sourceCoverage.getCounter(CounterEntity.BRANCH).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.BRANCH).getMissedCount(),
+            sourceCoverage.getCounter(CounterEntity.LINE).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.LINE).getMissedCount(),
+            sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getMissedCount(),
+            sourceCoverage.getCounter(CounterEntity.METHOD).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.METHOD).getMissedCount());
   }
 
-  private static String insertSourceCoverageStatement() {
-    StringBuilder sql = new StringBuilder().append("INSERT INTO SOURCE_COVERAGE (branch, changelist, suite, package, filename, line_coverage, suite_run_date, ");
-    int counterCount = COUNTERS.length;
-    for (final CounterEntity entity : COUNTERS) {
-      sql.append(entity.name()).append("_MISSED, ");
-      sql.append(entity.name()).append("_COVERED");
-      if (counterCount-- > 1) {
-        // Don't write the last comma, so we don't end with a comma.
-        sql.append(", ");
-      }
-    }
-
-    // Final field and values follow...
-    sql.append(") VALUES (?, ?, ?, ?, ?, ?, ?, ");
-    counterCount = COUNTERS.length;
-    for (final CounterEntity entity2 : COUNTERS) {
-      sql.append("?, ? ");
-      if (counterCount-- > 1) {
-        // Don't write the last comma, so we don't end with a comma.
-        sql.append(", ");
-      }
-    }
-    sql.append(")");
-    logger.trace(sql.toString());
-    return sql.toString();
-  }
-
-  private Blob buildLineCoverageBitmap(Connection connection, ISourceFileCoverage sourceCoverage) throws SQLException {
+  private byte[] buildLineCoverageBytes(ISourceFileCoverage sourceCoverage) {
     BitSet lineCoverage = new BitSet(sourceCoverage.getLineCounter().getTotalCount());
     final int lastLine = sourceCoverage.getLastLine();
     for (int lineNumber = sourceCoverage.getFirstLine(); lineNumber < lastLine; lineNumber++) {
       int status = sourceCoverage.getLine(lineNumber).getStatus();
       lineCoverage.set(lineNumber, status == ICounter.FULLY_COVERED || status == ICounter.PARTLY_COVERED);
     }
-    Blob blob = connection.createBlob();
-    blob.setBytes(1, CoverageLineSet.bitSetToByteArray(lineCoverage));
-    return blob;
+    return CoverageLineSet.bitSetToByteArray(lineCoverage);
   }
 }

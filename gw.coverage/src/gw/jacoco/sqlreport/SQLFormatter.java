@@ -1,5 +1,7 @@
 package gw.jacoco.sqlreport;
 
+import gw.coverage.dbo.CoverageMapper;
+import org.apache.ibatis.session.SqlSession;
 import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.SessionInfo;
 import org.jacoco.report.ILanguageNames;
@@ -53,13 +55,15 @@ public class SQLFormatter {
   /**
    * Creates a new visitor to write a report to the given stream.
    *
+   *
    * @param connection output SQL connection to write the report to
    * @return visitor to emit the report data to
    * @throws java.io.IOException in case of problems with the output stream
    */
-  public IReportVisitor createVisitor(final Connection connection, final String branchName, final String changelist, String suiteName, Date suiteRunDate)
+  public IReportVisitor createVisitor(final SqlSession session, final String branchName, final String changelist, String suiteName, Date suiteRunDate)
           throws IOException {
-    final ClassRowWriter rowWriter = new ClassRowWriter(connection, languageNames);
+    CoverageMapper mapper = session.getMapper(CoverageMapper.class);
+    final ClassRowWriter rowWriter = new ClassRowWriter(mapper, languageNames);
 
     class Visitor extends SuiteGroupHandler implements IReportVisitor {
 

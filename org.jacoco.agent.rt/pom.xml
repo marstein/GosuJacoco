@@ -69,8 +69,10 @@
             </goals>
             <configuration>
               <source>
-              def id = Math.abs(new java.util.Random().nextInt())
-              project.properties['rt'] = "rt_" + Integer.toString(id, Character.MAX_RADIX)
+              <!--def id = Math.abs(new java.util.Random().nextInt())
+              project.properties['rt'] = "rt_" + Integer.toString(id, Character.MAX_RADIX) -->
+              <!-- Gitmo is loading a class out of this package to find the file. It needs a reliable package name. -->
+              project.properties['rt'] = "rt_Guidewire"
               </source>
             </configuration>
           </execution>

@@ -20,12 +20,11 @@ class SuiteGroupHandler implements IReportGroupVisitor {
 
   // Currently groupname and suite name are the same.
   private final String groupName;
-
   private final Date suiteRunDate;
-
   private final String suiteName;
   private String branchName;
   private String changelist;
+
   static private Logger logger = Logger.getLogger(SuiteGroupHandler.class.getName());
 
   public SuiteGroupHandler(final ClassRowWriter writer, String groupName, String branchName, String changelist, String suiteName, Date suiteRunDate) {

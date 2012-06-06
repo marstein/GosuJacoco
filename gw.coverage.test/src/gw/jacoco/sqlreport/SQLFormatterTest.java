@@ -55,7 +55,7 @@ public class SQLFormatterTest {
       throw new IllegalStateException("Could not get org.h2.Driver database connection to " + connectString, e);
     }
 
-    visitor = formatter.createVisitor(connection, "branch", "changelist", "test suite", new SimpleDateFormat().parse("07/10/12 4:5 PM, PDT"));
+    visitor = formatter.createVisitor(null, "branch", "changelist", "test suite", new SimpleDateFormat().parse("07/10/12 4:5 PM, PDT"));
   }
 
   @After
@@ -92,7 +92,7 @@ public class SQLFormatterTest {
   @Test
   public void testSetEncoding() throws Exception {
     formatter.setOutputEncoding("UTF-16");
-    visitor = formatter.createVisitor(connection, "branch", "changelist", "test suite", new SimpleDateFormat().parse("11/11/12 4:5 PM, PDT"));
+    visitor = formatter.createVisitor(null, "branch", "changelist", "test suite", new SimpleDateFormat().parse("11/11/12 4:5 PM, PDT"));
     driver.sendBundle(visitor);
     final List<String> lines = getLines("UTF-16");
     assertEquals("INSTRUCTION_MISSED=10 INSTRUCTION_COVERED=15 BRANCH_MISSED=1 BRANCH_COVERED=2 LINE_MISSED=0 LINE_COVERED=3 COMPLEXITY_MISSED=1 COMPLEXITY_COVERED=2 METHOD_MISSED=0 METHOD_COVERED=1 SUITE=test suite PACKAGE=org/jacoco/example CLASS=FooClass SUITE_RUN_DATE=2012-11-11 04:05:00.0 BRANCH=branch CHANGELIST=changelist ", lines.get(0));

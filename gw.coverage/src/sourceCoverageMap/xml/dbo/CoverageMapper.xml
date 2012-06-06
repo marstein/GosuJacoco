@@ -3,8 +3,8 @@
 <mapper namespace="gw.coverage.dbo.CoverageMapper">
 
     <resultMap id="CoveredFileBaseResultMap" type="gw.coverage.dbo.CoveredFile">
-        <result property="packageName" column="package" javaType="java.lang.String" jdbcType="VARCHAR"/>
-        <result property="fileName" column="filename" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="packageName" column="package" javaType="java.lang.String"/>
+        <result property="fileName" column="filename" javaType="java.lang.String"/>
         <collection property="runList" ofType="gw.coverage.dbo.CoverageRun">
             <result property="branch" column="branch" javaType="String"/>
             <result property="changelist" column="changelist" javaType="String"/>
@@ -28,29 +28,109 @@
     <select id="gw.coverage.dbo.CoverageMapper.findAllCoveredFiles"
             resultMap="CoveredFileBaseResultMap" resultType="gw.coverage.dbo.CoveredFile"
             parameterType="map">
-        select filename, package, changelist, branch, suite, suite_run_date,
+        select f.filename, p.package, c.changelist, b.branch, s.suite, suite_run_date,
         BRANCH_COVERED, BRANCH_MISSED, COMPLEXITY_COVERED, COMPLEXITY_MISSED, INSTRUCTION_COVERED,
         INSTRUCTION_MISSED, LINE_COVERED, LINE_MISSED, METHOD_COVERED, METHOD_MISSED, line_coverage
-        from source_coverage
+        from source_coverage sc
+        join filename f on sc.filename_id = id
+        join package p on sc.package_id = id
+        join changelist c on sc.changelist_id = id
+        join branch b on sc.branch_id = id
+        join suite s on sc.suite_id = id
         <where>
             <if test="branch != null">
-                branch = #{branch}
+                b.branch = #{branch}
             </if>
             <if test="changelist != null">
-                AND changelist = #{changelist}
+                AND c.changelist = #{changelist}
             </if>
             <if test="file != null">
-                AND filename LIKE #{file}
+                AND f.filename LIKE #{file}
             </if>
             <if test="runDate != null">
                 AND suite_run_date = #{runDate}
             </if>
             <if test="apps != null">
                 AND
-                <foreach collection="apps" item="item" open="(" separator="OR " close=" OR SUBSTRING(suite,1,2)='pl' )">
+                <foreach collection="apps" item="item" open="(" separator="OR " close=" OR SUBSTRING(s.suite,1,2)='pl' )">
                     LOWER(SUBSTRING(suite, 1, 2)) = #{item}
                 </foreach>
             </if>
         </where>
     </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertBranch" parameterType="String">
+        INSERT INTO branch (branch) VALUES ( #{branchName} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectBranch" parameterType="String" resultType="int">
+        SELECT id from branch where branch=#{branchName}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertSuite" keyProperty="id">
+        INSERT INTO suite (suite) VALUES ( #{suite} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectSuite" parameterType="String" resultType="int">
+        SELECT id from suite where suite=#{suite}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertChangelist" keyProperty="id">
+        INSERT INTO changelist (changelist) VALUES ( #{changelist} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectChangelist" parameterType="String" resultType="int">
+        SELECT id from changelist where changelist=#{changelist}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertPackage" keyProperty="id">
+        INSERT INTO package (package) VALUES ( #{package} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectPackage" parameterType="String" resultType="int">
+        SELECT id from package where package=#{package}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertFilename" keyProperty="id">
+        INSERT INTO filename (filename) VALUES ( #{filename} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectFilename" parameterType="String" resultType="int">
+        SELECT id from filename where filename=#{filename}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertClass" keyProperty="id">
+        INSERT INTO class (class) VALUES ( #{class} )
+    </insert>
+    <select id="gw.coverage.dbo.CoverageMapper.selectClass" parameterType="String" resultType="int">
+        SELECT id from class where class=#{class}
+    </select>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertSourceCoverage" parameterType="map">
+        INSERT INTO SOURCE_COVERAGE (branch_id, changelist_id, suite_id, package_id, filename_id,
+          line_coverage, suite_run_date, INSTRUCTION_MISSED, INSTRUCTION_COVERED , BRANCH_MISSED , BRANCH_COVERED,
+          LINE_MISSED , LINE_COVERED , COMPLEXITY_MISSED , COMPLEXITY_COVERED , METHOD_MISSED , METHOD_COVERED)
+        values (#{branch_id}, #{changelist_id}, #{suite_id}, #{package_id}, #{filename_id},
+            #{line_coverage}, #{suite_run_date}, #{INSTRUCTION_MISSED}, #{INSTRUCTION_COVERED}, #{BRANCH_MISSED}, #{BRANCH_COVERED},
+            #{LINE_MISSED}, #{LINE_COVERED}, #{COMPLEXITY_MISSED}, #{COMPLEXITY_COVERED}, #{METHOD_MISSED}, #{METHOD_COVERED} )
+    </insert>
+
+    <insert id="gw.coverage.dbo.CoverageMapper.insertPackageCoverage" parameterType="map">
+        INSERT INTO PACKAGE_COVERAGE (branch_id, changelist_id, suite_id, package_id, class_id,
+          suite_run_date, INSTRUCTION_MISSED, INSTRUCTION_COVERED , BRANCH_MISSED , BRANCH_COVERED,
+          LINE_MISSED , LINE_COVERED, COMPLEXITY_MISSED , COMPLEXITY_COVERED , METHOD_MISSED , METHOD_COVERED)
+        values (#{branch_id}, #{changelist_id}, #{suite_id}, #{package_id}, #{class_id},
+            #{suite_run_date}, #{INSTRUCTION_MISSED}, #{INSTRUCTION_COVERED}, #{BRANCH_MISSED}, #{BRANCH_COVERED},
+            #{LINE_MISSED}, #{LINE_COVERED}, #{COMPLEXITY_MISSED}, #{COMPLEXITY_COVERED}, #{METHOD_MISSED}, #{METHOD_COVERED} )
+    </insert>
+
+    <update id="createBranch">CREATE TABLE branch (id int identity(1,1) primary key, branch varchar(100))</update>
+    <update id="createSuite">CREATE TABLE suite (id int identity(1,1) primary key, suite varchar(100))</update>
+    <update id="createChangelist">CREATE TABLE changelist (id int identity(1,1) primary key, changelist varchar(30))</update>
+    <update id="createPackage">CREATE TABLE package (id int identity(1,1) primary key, package varchar(200))</update>
+    <update id="createFilename">CREATE TABLE filename (id int identity(1,1) primary key, filename varchar(200))</update>
+    <update id="createClass">CREATE TABLE class (id int identity(1,1) primary key, class varchar(300))</update>
+    <update id="createPackageCoverage">CREATE TABLE PACKAGE_COVERAGE (id int identity(1,1),
+            branch_id int foreign key references branch(id), changelist_id int foreign key references changelist(id), suite_id int foreign key references suite(id), package_id int foreign key references package(id), class_id int foreign key references class(id),
+            suite_run_date datetime, INSTRUCTION_MISSED int, INSTRUCTION_COVERED int, BRANCH_MISSED int, BRANCH_COVERED int, LINE_MISSED int, LINE_COVERED int, COMPLEXITY_MISSED int, COMPLEXITY_COVERED int, METHOD_MISSED int, METHOD_COVERED int)
+    </update>
+    <update id="createSourceCoverage">CREATE TABLE SOURCE_COVERAGE (id int identity(1,1),
+            branch_id int foreign key references branch(id), changelist_id int foreign key references changelist(id), suite_id int foreign key references suite(id), package_id int foreign key references package(id), filename_id int foreign key references filename(id),
+            line_coverage varbinary(1600), suite_run_date datetime, INSTRUCTION_MISSED int, INSTRUCTION_COVERED int, BRANCH_MISSED int, BRANCH_COVERED int, LINE_MISSED int, LINE_COVERED int, COMPLEXITY_MISSED int, COMPLEXITY_COVERED int, METHOD_MISSED int, METHOD_COVERED int)
+    </update>
 </mapper>

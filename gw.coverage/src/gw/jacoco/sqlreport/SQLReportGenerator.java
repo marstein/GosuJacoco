@@ -13,6 +13,12 @@ package gw.jacoco.sqlreport;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
@@ -25,8 +31,8 @@ import org.jacoco.report.IReportVisitor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Reader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -48,7 +54,6 @@ public class SQLReportGenerator {
   private File projectDirectory;
   private List<File> classesDirectories = new ArrayList<File>();
   private List<File> sourceDirectories = new ArrayList<File>();
-  private Connection reportConnection;
   private String connectString;
 
   private ExecutionDataStore executionDataStore;
@@ -133,17 +138,15 @@ public class SQLReportGenerator {
   }
 
   private void createReport(final IBundleCoverage bundleCoverage) throws IOException {
-    try {
-      this.reportConnection = DriverManager.getConnection(connectString);
-    } catch (SQLException e) {
-      throw new IllegalStateException("Could not get database connection to " + connectString, e);
-    }
+    sessionFactory = initializeIBatis();
+    SqlSession session = null;
 
     try {
       // Create a concrete report visitor based on some supplied
       // configuration. In this case we use the defaults
       final SQLFormatter sqlFormatter = new SQLFormatter();
-      final IReportVisitor visitor = sqlFormatter.createVisitor(reportConnection, branchName, changelist, suiteName, suiteRunDate);
+      session = sessionFactory.openSession(TransactionIsolationLevel.READ_UNCOMMITTED);
+      final IReportVisitor visitor = sqlFormatter.createVisitor(session, branchName, changelist, suiteName, suiteRunDate);
 
       // Initialize the report with all of the execution and session
       // information. At this point the report doesn't know about the
@@ -164,13 +167,27 @@ public class SQLReportGenerator {
       // information out
       visitor.visitEnd();
     } finally {
-      try {
-        this.reportConnection.close();
-      } catch (SQLException e) {
-        logger.severe("Could not close database connection" + e);
+      if (session != null) {
+        session.commit();
+        session.close();
       }
     }
   }
+
+  private SqlSessionFactory sessionFactory;
+
+  private static SqlSessionFactory initializeIBatis() {
+    Reader resourceAsReader = null;
+    try {
+      resourceAsReader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
+      SqlSessionFactory sessionFactory1 = new SqlSessionFactoryBuilder().build(resourceAsReader);
+      resourceAsReader.close();
+      return sessionFactory1;
+    } catch (IOException e) {
+      throw new IllegalStateException("could not initialize ibatis", e);
+    }
+  }
+
 
   private void loadExecutionData() throws IOException {
     logger.info("Loading execution data from " + executionDataFile.toString());
@@ -247,50 +264,33 @@ public class SQLReportGenerator {
   private static void createDBTables(String connectString) {
     Connection reportConnection = null;
     String statement = null;
+    SqlSessionFactory sessionFactory = initializeIBatis();
+    SqlSession session = sessionFactory.openSession();
     try {
-      reportConnection = DriverManager.getConnection(connectString);
-      Statement createTableStatement = reportConnection.createStatement();
-      makeTable(createTableStatement, buildCreatePackageTableStatement(reportConnection));
+      // Dimension tables: branch, suite, changelist, package, filename, class
+      makeTable(session, "gw.coverage.dbo.CoverageMapper.createBranch");
+      makeTable(session, "createSuite");
+      makeTable(session, "createChangelist");
+      makeTable(session, "createPackage");
+      makeTable(session, "createFilename");
+      makeTable(session, "createClass");
 
-      makeTable(createTableStatement, buildCreateSourceTableStatement(reportConnection));
-    } catch (SQLException e) {
-      logger.warning("Error during create table." + e.toString());
+      // PACKAGE_COVERAGE
+      makeTable(session, "createPackageCoverage");
+      // SOURCE_COVERAGE
+      makeTable(session, "createSourceCoverage");
     } finally {
-      if (reportConnection != null) {
-        try {
-          reportConnection.close();
-        } catch (SQLException e) {
-          logger.severe("Cannot close connection after creating table!");
-        }
-      }
+      session.close();
     }
   }
 
-  protected static String buildCreatePackageTableStatement(Connection connection) {
-    String timestampTypename = connection.getClass().getName().contains("SQLServerConnection") ? "datetime" : "timestamp";
-    return "CREATE TABLE PACKAGE_COVERAGE (id int identity(1,1), branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), class varchar(300), suite_run_date " +
-            timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
-  }
 
 
-  protected static String buildCreateSourceTableStatement(Connection connection) {
-    // The source_coverage table stores coverage on a file and a line level. Covered lines are a 1 in the line_coverage bitmap.
-    // /cygdrive/p/eng/emerald/pl/ready/merge
-    // $ find . -name '*.java' -exec wc -l {} \;|awk 'BEGIN {c=0; max=0} {c+=$1; if(max<$1)max=$1} END {print "total lines=",c,"max file line count=", max}'
-    // total lines= 8490978 max file line count= 12562
-    int maxLinesInBytes = 12562 / 8;
-    String timestampTypename = connection.getClass().getName().contains("SQLServerConnection") ? "datetime" : "timestamp";
-    return "CREATE TABLE SOURCE_COVERAGE (id int identity(1,1), branch varchar(100), changelist varchar(30), suite varchar(100), package varchar(200), filename varchar(200), line_coverage varbinary(" +
-            maxLinesInBytes + "), suite_run_date " +
-            timestampTypename + ", INSTRUCTION_MISSED integer, INSTRUCTION_COVERED integer, BRANCH_MISSED integer, BRANCH_COVERED integer, LINE_MISSED integer, LINE_COVERED integer, COMPLEXITY_MISSED integer, COMPLEXITY_COVERED integer, METHOD_MISSED integer, METHOD_COVERED integer)";
-  }
-
-
-  protected static void makeTable(Statement statement, String sql) {
+  protected static void makeTable(SqlSession session, String sql) {
     try {
-      statement.executeUpdate(sql);
-    } catch (SQLException e) {
-      logger.warning("Error during create table. Statement=" + sql + "\nContinuing... " + e.toString());
+      session.update(sql);
+    } catch (PersistenceException e) {
+      logger.warning("Ignoring error during create table. Statement=" + sql + "\nContinuing... " + e.toString());
     }
   }
 }
