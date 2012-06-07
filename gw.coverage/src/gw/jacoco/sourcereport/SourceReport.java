@@ -74,6 +74,9 @@ public class SourceReport {
     for (CoveredFile coveredFile : queryIbatis()) {
       CoverageAnalysis coverageAnalysis = new CoverageAnalysis(this, coveredFile);
       CoverageRunSummary summary = coverageAnalysis.analyze();
+      if (summary.isEmpty()) {
+        continue;
+      }
       logger.debug(coverageAnalysis.toString());
       System.out.println(coverageAnalysis.getNonPLRuns().toCSV());
       System.out.println(coverageAnalysis.getThePLRuns().toCSV());
@@ -89,6 +92,7 @@ public class SourceReport {
       session = openSession();
       CoverageMapper mapper = session.getMapper(CoverageMapper.class);
       coveredFileList = mapper.findAllCoveredFiles(branchName, changelist, apps, filePattern, suiteRunDate);
+      logger.info("Found " + coveredFileList.size() + " covered files");
     } finally {
       if (session != null) {
         session.close();

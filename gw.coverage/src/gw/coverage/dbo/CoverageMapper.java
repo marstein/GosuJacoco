@@ -2,8 +2,7 @@ package gw.coverage.dbo;
 
 import org.apache.ibatis.annotations.Param;
 
-import java.sql.Blob;
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -49,11 +48,11 @@ public interface CoverageMapper {
                                   @Param("METHOD_COVERED") int method_covered);
 
   public int insertPackageCoverage(@Param("branch_id") int branch_id, @Param("changelist_id") int changelist_id,
-                                  @Param("suite_id") int suite_id, @Param("package_id") int package_id, @Param("class_id") int class_id,
-                                  @Param("suite_run_date") Date suite_run_date,
-                                  @Param("INSTRUCTION_MISSED") int instruction_missed, @Param("INSTRUCTION_COVERED") int instruction_covered,
-                                  @Param("BRANCH_MISSED") int branch_missed, @Param("BRANCH_COVERED") int branch_covered,
-                                  @Param("LINE_MISSED") int line_missed, @Param("LINE_COVERED") int line_covered, @Param("COMPLEXITY_MISSED") int complexity_missed,
-                                  @Param("COMPLEXITY_COVERED") int complexity_covered, @Param("METHOD_MISSED") int method_missed,
-                                  @Param("METHOD_COVERED") int method_covered);
+                                   @Param("suite_id") int suite_id, @Param("package_id") int package_id, @Param("class_id") int class_id,
+                                   @Param("suite_run_date") Date suite_run_date,
+                                   @Param("INSTRUCTION_MISSED") int instruction_missed, @Param("INSTRUCTION_COVERED") int instruction_covered,
+                                   @Param("BRANCH_MISSED") int branch_missed, @Param("BRANCH_COVERED") int branch_covered,
+                                   @Param("LINE_MISSED") int line_missed, @Param("LINE_COVERED") int line_covered, @Param("COMPLEXITY_MISSED") int complexity_missed,
+                                   @Param("COMPLEXITY_COVERED") int complexity_covered, @Param("METHOD_MISSED") int method_missed,
+                                   @Param("METHOD_COVERED") int method_covered);
 }

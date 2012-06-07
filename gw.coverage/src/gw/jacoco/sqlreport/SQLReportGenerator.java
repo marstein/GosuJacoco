@@ -27,18 +27,18 @@ import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.SessionInfoStore;
 import org.jacoco.report.DirectorySourceFileLocator;
 import org.jacoco.report.IReportVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Read a coverage data file, analyze it with the class/jar/dumped bytecode files from Gosu and write
@@ -63,7 +63,7 @@ public class SQLReportGenerator {
   private String branchName;
   private String changelist;
 
-  private static Logger logger = Logger.getLogger("SQLReportGenerator");
+  private static Logger logger = LoggerFactory.getLogger("SQLReportGenerator");
 
   /**
    * Create a new generator based for the given project.
@@ -176,16 +176,17 @@ public class SQLReportGenerator {
 
   private SqlSessionFactory sessionFactory;
 
-  private static SqlSessionFactory initializeIBatis() {
-    Reader resourceAsReader = null;
+  protected static SqlSessionFactory initializeIBatis() {
+    SqlSessionFactory factory;
+    Reader resourceAsReader;
     try {
       resourceAsReader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
-      SqlSessionFactory sessionFactory1 = new SqlSessionFactoryBuilder().build(resourceAsReader);
+      factory = new SqlSessionFactoryBuilder().build(resourceAsReader);
       resourceAsReader.close();
-      return sessionFactory1;
     } catch (IOException e) {
       throw new IllegalStateException("could not initialize ibatis", e);
     }
+    return factory;
   }
 
 
@@ -261,11 +262,18 @@ public class SQLReportGenerator {
   It would improve the size of the written table if the dimensions (branch, suite, package, etc) were in separate
   tables that point into a fact table containing the measurements.
    */
-  private static void createDBTables(String connectString) {
-    Connection reportConnection = null;
-    String statement = null;
+  static void createDBTables(String connectString) {
     SqlSessionFactory sessionFactory = initializeIBatis();
-    SqlSession session = sessionFactory.openSession();
+    SqlSession session;
+    if (connectString != null) {
+      try {
+        session = sessionFactory.openSession(DriverManager.getConnection(connectString));
+      } catch (SQLException e) {
+        throw new IllegalStateException("ERROR opening DB connection!", e);
+      }
+    } else {
+      session = sessionFactory.openSession();
+    }
     try {
       // Dimension tables: branch, suite, changelist, package, filename, class
       makeTable(session, "gw.coverage.dbo.CoverageMapper.createBranch");
@@ -280,17 +288,17 @@ public class SQLReportGenerator {
       // SOURCE_COVERAGE
       makeTable(session, "createSourceCoverage");
     } finally {
+      session.commit();
       session.close();
     }
   }
-
 
 
   protected static void makeTable(SqlSession session, String sql) {
     try {
       session.update(sql);
     } catch (PersistenceException e) {
-      logger.warning("Ignoring error during create table. Statement=" + sql + "\nContinuing... " + e.toString());
+      logger.warn("Ignoring error during create table. Statement=" + sql + "\nContinuing... " + e.toString());
     }
   }
 }

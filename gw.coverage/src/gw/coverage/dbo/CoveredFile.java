@@ -54,4 +54,35 @@ public class CoveredFile {
             ", runList=" + runList +
             '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    CoveredFile that = (CoveredFile) o;
+
+    if (fileName != null ? !fileName.equals(that.fileName) : that.fileName != null) {
+      return false;
+    }
+    if (packageName != null ? !packageName.equals(that.packageName) : that.packageName != null) {
+      return false;
+    }
+    if (runList != null ? !runList.equals(that.runList) : that.runList != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = packageName != null ? packageName.hashCode() : 0;
+    result = 31*result + (fileName != null ? fileName.hashCode() : 0);
+    return result;
+  }
 }

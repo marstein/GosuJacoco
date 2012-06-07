@@ -28,16 +28,16 @@ public class CommandLineArguments {
   @Parameter(names = {"-changelist", "-c"}, description = "change list number; e.g. 443211")
   public String changeList = "";
 
-  @Parameter(names = { "-jdbcconnection", "-jdbc" }, description = "JDBC connection string", required = true)
-  public String jdbcConnection = "no jdbc connection";
+  @Parameter(names = {"-jdbcconnection", "-jdbc"}, description = "JDBC connection string")
+  public String jdbcConnection = null;
 
-  @Parameter(names = { "-execfile", "-e"}, description = "Jacoco execution file name", converter = FileConverter.class, required = true)
+  @Parameter(names = {"-execfile", "-e"}, description = "Jacoco execution file name", converter = FileConverter.class, required = true)
   public File execFile;
 
-  @Parameter(names = "-classesdir", description =  "class directory, jar file. Can occur multiple times", converter = FileConverter.class, required = true)
+  @Parameter(names = "-classesdir", description = "class directory, jar file. Can occur multiple times", converter = FileConverter.class, required = true)
   public List<File> classesDirs = new ArrayList<File>();
 
-  @Parameter(names="-runDate", description = "suite run date YYYY/MM/DD", converter = ISO8601DateConverter.class)
+  @Parameter(names = "-runDate", description = "suite run date YYYY/MM/DD", converter = ISO8601DateConverter.class)
   public Date suiteRunDate;
 
   @Parameter(names = "-createTables", description = "create the tables to write into before running. needs DDL permissions.")

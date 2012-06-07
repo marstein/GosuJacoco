@@ -28,15 +28,15 @@
     <select id="gw.coverage.dbo.CoverageMapper.findAllCoveredFiles"
             resultMap="CoveredFileBaseResultMap" resultType="gw.coverage.dbo.CoveredFile"
             parameterType="map">
-        select f.filename, p.package, c.changelist, b.branch, s.suite, suite_run_date,
+        select p.package, f.filename, c.changelist, b.branch, s.suite, suite_run_date,
         BRANCH_COVERED, BRANCH_MISSED, COMPLEXITY_COVERED, COMPLEXITY_MISSED, INSTRUCTION_COVERED,
         INSTRUCTION_MISSED, LINE_COVERED, LINE_MISSED, METHOD_COVERED, METHOD_MISSED, line_coverage
         from source_coverage sc
-        join filename f on sc.filename_id = id
-        join package p on sc.package_id = id
-        join changelist c on sc.changelist_id = id
-        join branch b on sc.branch_id = id
-        join suite s on sc.suite_id = id
+        join filename f on sc.filename_id = f.id
+        join package p on sc.package_id = p.id
+        join changelist c on sc.changelist_id = c.id
+        join branch b on sc.branch_id = b.id
+        join suite s on sc.suite_id = s.id
         <where>
             <if test="branch != null">
                 b.branch = #{branch}
@@ -51,12 +51,14 @@
                 AND suite_run_date = #{runDate}
             </if>
             <if test="apps != null">
+                -- if apps are specified, we always have to include PL apps as well. This is what the OR stmt achieves.
                 AND
                 <foreach collection="apps" item="item" open="(" separator="OR " close=" OR SUBSTRING(s.suite,1,2)='pl' )">
-                    LOWER(SUBSTRING(suite, 1, 2)) = #{item}
+                    LOWER(SUBSTRING(s.suite, 1, 2)) = #{item}
                 </foreach>
             </if>
         </where>
+        order by p.package, f.filename
     </select>
 
     <insert id="gw.coverage.dbo.CoverageMapper.insertBranch" parameterType="String">
@@ -126,11 +128,29 @@
     <update id="createFilename">CREATE TABLE filename (id int identity(1,1) primary key, filename varchar(200))</update>
     <update id="createClass">CREATE TABLE class (id int identity(1,1) primary key, class varchar(300))</update>
     <update id="createPackageCoverage">CREATE TABLE PACKAGE_COVERAGE (id int identity(1,1),
-            branch_id int foreign key references branch(id), changelist_id int foreign key references changelist(id), suite_id int foreign key references suite(id), package_id int foreign key references package(id), class_id int foreign key references class(id),
-            suite_run_date datetime, INSTRUCTION_MISSED int, INSTRUCTION_COVERED int, BRANCH_MISSED int, BRANCH_COVERED int, LINE_MISSED int, LINE_COVERED int, COMPLEXITY_MISSED int, COMPLEXITY_COVERED int, METHOD_MISSED int, METHOD_COVERED int)
+            branch_id int,     constraint pbfk foreign key (branch_id) references branch(id),
+            changelist_id int, constraint pcfk foreign key (changelist_id) references changelist(id),
+            suite_id int,   constraint psfk foreign key (suite_id) references suite(id),
+            package_id int, constraint ppfk foreign key (package_id) references package(id),
+            class_id int,   constraint pclassfk foreign key (class_id) references class(id),
+            suite_run_date datetime,
+            INSTRUCTION_MISSED int, INSTRUCTION_COVERED int,
+            BRANCH_MISSED int, BRANCH_COVERED int,
+            LINE_MISSED int, LINE_COVERED int,
+            COMPLEXITY_MISSED int, COMPLEXITY_COVERED int,
+            METHOD_MISSED int, METHOD_COVERED int)
     </update>
     <update id="createSourceCoverage">CREATE TABLE SOURCE_COVERAGE (id int identity(1,1),
-            branch_id int foreign key references branch(id), changelist_id int foreign key references changelist(id), suite_id int foreign key references suite(id), package_id int foreign key references package(id), filename_id int foreign key references filename(id),
-            line_coverage varbinary(1600), suite_run_date datetime, INSTRUCTION_MISSED int, INSTRUCTION_COVERED int, BRANCH_MISSED int, BRANCH_COVERED int, LINE_MISSED int, LINE_COVERED int, COMPLEXITY_MISSED int, COMPLEXITY_COVERED int, METHOD_MISSED int, METHOD_COVERED int)
+            branch_id int,     constraint sbfk foreign key (branch_id) references branch(id),
+            changelist_id int, constraint scfk foreign key (changelist_id) references changelist(id),
+            suite_id int,    constraint ssfk foreign key (suite_id) references suite(id),
+            package_id int,  constraint spfk foreign key (package_id) references package(id),
+            filename_id int, constraint sffk foreign key (filename_id) references filename(id),
+            line_coverage varbinary(1600), suite_run_date datetime,
+            INSTRUCTION_MISSED int, INSTRUCTION_COVERED int,
+            BRANCH_MISSED int, BRANCH_COVERED int,
+            LINE_MISSED int, LINE_COVERED int,
+            COMPLEXITY_MISSED int, COMPLEXITY_COVERED int,
+            METHOD_MISSED int, METHOD_COVERED int)
     </update>
 </mapper>

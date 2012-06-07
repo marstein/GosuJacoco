@@ -11,10 +11,8 @@
  *******************************************************************************/
 package gw.jacoco.sqlreport;
 
-import gw.coverage.dbo.Branch;
 import gw.coverage.dbo.CoverageMapper;
 import gw.jacoco.sourcereport.CoverageLineSet;
-import org.apache.ibatis.session.SqlSession;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.ICounter;
 import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
@@ -23,19 +21,10 @@ import org.jacoco.report.ILanguageNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.BitSet;
+import java.util.Date;
 
 /**
  * Writes summary coverage data into the database.
@@ -44,22 +33,13 @@ public class ClassRowWriter {
 
   private final CoverageMapper mapper;
 
-  // CREATE TABLE coverage
-  private static final CounterEntity[] COUNTERS = {CounterEntity.INSTRUCTION,
-          CounterEntity.BRANCH, CounterEntity.LINE,
-          CounterEntity.COMPLEXITY, CounterEntity.METHOD};
-
   private final ILanguageNames languageNames;
 
   private static Logger logger = LoggerFactory.getLogger("gw.jacoco.sqlreport.ClassRowWriter");
 
-  private static final String NEW_LINE = System.getProperty("line.separator");
-
   /**
    * Creates a new row connection1 that writes class information to the given CSV
    * connection1.
-   *
-   *
    *
    * @param languageNames converter for Java identifiers
    * @throws java.io.IOException in case of problems with the connection1
@@ -89,32 +69,32 @@ public class ClassRowWriter {
       mapper.insertBranch(branchName);
       branch_id = mapper.selectBranch(branchName);
     }
-    Integer suite_id=null;
+    Integer suite_id;
     if (null == (suite_id = mapper.selectSuite(suiteName))) {
-       mapper.insertSuite(suiteName);
+      mapper.insertSuite(suiteName);
       suite_id = mapper.selectSuite(suiteName);
     }
-    Integer changelist_id=null;
+    Integer changelist_id;
     if (null == (changelist_id = mapper.selectChangelist(changelist))) {
       mapper.insertChangelist(changelist);
       changelist_id = mapper.selectChangelist(changelist);
     }
-    Integer package_id=null;
+    Integer package_id;
     if (null == (package_id = mapper.selectPackage(packageName))) {
       mapper.insertPackage(packageName);
       package_id = mapper.selectPackage(packageName);
     }
-    Integer class_id=null;
+    Integer class_id;
     if (null == (class_id = mapper.selectClass(className))) {
       mapper.insertClass(className);
       class_id = mapper.selectClass(className);
     }
     mapper.insertPackageCoverage(branch_id, changelist_id, suite_id, package_id, class_id, suiteRunDate,
-            node.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(), node.getCounter(CounterEntity.INSTRUCTION).getMissedCount(),
-            node.getCounter(CounterEntity.BRANCH).getCoveredCount(), node.getCounter(CounterEntity.BRANCH).getMissedCount(),
-            node.getCounter(CounterEntity.LINE).getCoveredCount(), node.getCounter(CounterEntity.LINE).getMissedCount(),
-            node.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(), node.getCounter(CounterEntity.COMPLEXITY).getMissedCount(),
-            node.getCounter(CounterEntity.METHOD).getCoveredCount(), node.getCounter(CounterEntity.METHOD).getMissedCount());
+            node.getCounter(CounterEntity.INSTRUCTION).getMissedCount(), node.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(),
+            node.getCounter(CounterEntity.BRANCH).getMissedCount(), node.getCounter(CounterEntity.BRANCH).getCoveredCount(),
+            node.getCounter(CounterEntity.LINE).getMissedCount(), node.getCounter(CounterEntity.LINE).getCoveredCount(),
+            node.getCounter(CounterEntity.COMPLEXITY).getMissedCount(), node.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(),
+            node.getCounter(CounterEntity.METHOD).getMissedCount(), node.getCounter(CounterEntity.METHOD).getCoveredCount());
   }
 
   /*
@@ -130,33 +110,33 @@ public class ClassRowWriter {
       mapper.insertBranch(branchName);
       branch_id = mapper.selectBranch(branchName);
     }
-    Integer suite_id=null;
+    Integer suite_id;
     if (null == (suite_id = mapper.selectSuite(suiteName))) {
       mapper.insertSuite(suiteName);
       suite_id = mapper.selectSuite(suiteName);
     }
-    Integer changelist_id=null;
+    Integer changelist_id;
     if (null == (changelist_id = mapper.selectChangelist(changelist))) {
       mapper.insertChangelist(changelist);
       changelist_id = mapper.selectChangelist(changelist);
     }
-    Integer package_id=null;
+    Integer package_id;
     if (null == (package_id = mapper.selectPackage(packageName))) {
       mapper.insertPackage(packageName);
       package_id = mapper.selectPackage(packageName);
     }
-    Integer filename_id=null;
+    Integer filename_id;
     if (null == (filename_id = mapper.selectFilename(fileName))) {
       mapper.insertFilename(fileName);
       filename_id = mapper.selectFilename(fileName);
     }
 
-    mapper.insertSourceCoverage(branch_id.intValue(), changelist_id.intValue(), suite_id.intValue(), package_id.intValue(), filename_id.intValue(), buildLineCoverageBytes(sourceCoverage), suiteRunDate,
-            sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getMissedCount(),
-            sourceCoverage.getCounter(CounterEntity.BRANCH).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.BRANCH).getMissedCount(),
-            sourceCoverage.getCounter(CounterEntity.LINE).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.LINE).getMissedCount(),
-            sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getMissedCount(),
-            sourceCoverage.getCounter(CounterEntity.METHOD).getCoveredCount(), sourceCoverage.getCounter(CounterEntity.METHOD).getMissedCount());
+    mapper.insertSourceCoverage(branch_id, changelist_id, suite_id, package_id, filename_id, buildLineCoverageBytes(sourceCoverage), suiteRunDate,
+            sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getMissedCount(), sourceCoverage.getCounter(CounterEntity.INSTRUCTION).getCoveredCount(),
+            sourceCoverage.getCounter(CounterEntity.BRANCH).getMissedCount(), sourceCoverage.getCounter(CounterEntity.BRANCH).getCoveredCount(),
+            sourceCoverage.getCounter(CounterEntity.LINE).getMissedCount(), sourceCoverage.getCounter(CounterEntity.LINE).getCoveredCount(),
+            sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getMissedCount(), sourceCoverage.getCounter(CounterEntity.COMPLEXITY).getCoveredCount(),
+            sourceCoverage.getCounter(CounterEntity.METHOD).getMissedCount(), sourceCoverage.getCounter(CounterEntity.METHOD).getCoveredCount());
   }
 
   private byte[] buildLineCoverageBytes(ISourceFileCoverage sourceCoverage) {
