@@ -337,7 +337,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.1</version>
+                    <version>2.3.1</version>
                     <configuration>
                         <!--<tagBase>https://eclemma.svn.sourceforge.net/svnroot/eclemma/jacoco/tags</tagBase>-->
                         <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -348,6 +348,7 @@
                         We don't use releaseProfiles parameter, because it affects only release:perform goal
                         -->
                         <arguments>-Prelease</arguments>
+                        <pushChanges>false</pushChanges>
                     </configuration>
                 </plugin>
                 <plugin>
