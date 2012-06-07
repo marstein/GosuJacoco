@@ -124,9 +124,9 @@
 
     <repositories>
         <repository>
-            <id>gw.releases</id>
-            <url>http://nexus/content/repositories/releases/</url>
-            <name>Guidewire internal releases repository</name>
+            <id>gw.thirdparty</id>
+            <url>http://nexus/content/repositories/thirdparty/</url>
+            <name>Guidewire thirdparty repository</name>
         </repository>
     </repositories>
 
