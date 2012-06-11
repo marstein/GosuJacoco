@@ -9,27 +9,28 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.build</relativePath>
-  </parent>
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.build</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.build</relativePath>
+    </parent>
 
-  <artifactId>org.jacoco.agent.rt</artifactId>
-  <!-- do not set packaging to eclipse-plugin, because otherwise maven-shade-plugin will not work -->
+    <artifactId>org.jacoco.agent.rt</artifactId>
+    <!-- do not set packaging to eclipse-plugin, because otherwise maven-shade-plugin will not work -->
 
-  <name>JaCoCo :: Agent RT</name>
-  <description>JaCoCo Java Agent</description>
+    <name>JaCoCo :: Agent RT</name>
+    <description>JaCoCo Java Agent</description>
 
-  <properties>
-    <jarsigner.skip>true</jarsigner.skip>
-    <maven.deploy.skip>true</maven.deploy.skip>
-    <maven.javadoc.skip>true</maven.javadoc.skip>
-  </properties>
+    <properties>
+        <jarsigner.skip>true</jarsigner.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
 
     <repositories>
         <repository>
@@ -40,83 +41,83 @@
     </repositories>
 
     <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.jacoco.core</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.core</artifactId>
+        </dependency>
 
-      <dependency>
-          <groupId>org.gosu-lang.gosu</groupId>
-          <artifactId>gosu-core-api</artifactId>
-          <version>${gosu.version}</version>
-      </dependency>
+        <dependency>
+            <groupId>org.gosu-lang.gosu</groupId>
+            <artifactId>gosu-core-api</artifactId>
+            <version>${gosu.version}</version>
+        </dependency>
 
-  </dependencies>
+    </dependencies>
 
-  <build>
-    <sourceDirectory>src</sourceDirectory>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
 
-    <plugins>
-      <!-- Generates random number for relocation of packages -->
-      <plugin>
-        <groupId>org.codehaus.groovy.maven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <source>
-              <!--def id = Math.abs(new java.util.Random().nextInt())
-              project.properties['rt'] = "rt_" + Integer.toString(id, Character.MAX_RADIX) -->
-              <!-- Gitmo is loading a class out of this package to find the file. It needs a reliable package name. -->
-              project.properties['rt'] = "rt_Guidewire"
-              </source>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+        <plugins>
+            <!-- Generates random number for relocation of packages -->
+            <plugin>
+                <groupId>org.codehaus.groovy.maven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                <!--def id = Math.abs(new java.util.Random().nextInt())
+                          project.properties['rt'] = "rt_" + Integer.toString(id, Character.MAX_RADIX) -->
+                                <!-- Gitmo is loading a class out of this package to find the file. It needs a reliable package name. -->
+                                project.properties['rt'] = "rt_Guidewire"
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <shadedArtifactAttached>true</shadedArtifactAttached>
-              <shadedClassifierName>all</shadedClassifierName>
-              <minimizeJar>true</minimizeJar>
-              <relocations>
-                <relocation>
-                  <pattern>org.jacoco.agent.rt</pattern>
-                  <shadedPattern>org.jacoco.agent.${rt}</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jacoco.core</pattern>
-                  <shadedPattern>org.jacoco.agent.${rt}.core</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.objectweb.asm</pattern>
-                  <shadedPattern>org.jacoco.agent.${rt}.asm</shadedPattern>
-                </relocation>
-              </relocations>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <manifestEntries>
-                    <Premain-Class>org.jacoco.agent.${rt}.JacocoAgent</Premain-Class>
-                  </manifestEntries>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>all</shadedClassifierName>
+                            <minimizeJar>true</minimizeJar>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.jacoco.agent.rt</pattern>
+                                    <shadedPattern>org.jacoco.agent.${rt}</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jacoco.core</pattern>
+                                    <shadedPattern>org.jacoco.agent.${rt}.core</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>org.jacoco.agent.${rt}.asm</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Premain-Class>org.jacoco.agent.${rt}.JacocoAgent</Premain-Class>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -9,60 +9,62 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.build</relativePath>
-  </parent>
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.build</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.build</relativePath>
+    </parent>
 
-  <artifactId>org.jacoco.core</artifactId>
+    <artifactId>org.jacoco.core</artifactId>
 
-  <name>JaCoCo :: Core</name>
-  <description>JaCoCo Core</description>
+    <name>JaCoCo :: Core</name>
+    <description>JaCoCo Core</description>
 
-  <!-- Note that Tycho doesn't use those dependencies, but we need to declare them for consumers -->
-  <dependencies>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm-commons</artifactId>
-    </dependency>
-      <dependency>
-          <groupId>asm</groupId>
-          <artifactId>asm-util</artifactId>
-      </dependency>
-  </dependencies>
+    <!-- Note that Tycho doesn't use those dependencies, but we need to declare them for consumers -->
+    <dependencies>
+        <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm-util</artifactId>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <sourceDirectory>src</sourceDirectory>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
 
-    <plugins>
-      <!-- We can't define qualified.bundle.version as a project property, because buildQualifier constructed after reading POM by tycho-packaging-plugin -->
-      <!-- but we need it for resource filtering in compliance with Ant build, so here is workaround -->
-      <plugin>
-        <groupId>org.codehaus.groovy.maven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <source>
-              project.properties['qualified.bundle.version'] = project.properties['unqualifiedVersion'] + '.' + project.properties['buildQualifier']
-              </source>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+        <plugins>
+            <!-- We can't define qualified.bundle.version as a project property, because buildQualifier constructed after reading POM by tycho-packaging-plugin -->
+            <!-- but we need it for resource filtering in compliance with Ant build, so here is workaround -->
+            <plugin>
+                <groupId>org.codehaus.groovy.maven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                project.properties['qualified.bundle.version'] = project.properties['unqualifiedVersion'] + '.' +
+                                project.properties['buildQualifier']
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

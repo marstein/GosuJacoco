@@ -9,60 +9,61 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.build</relativePath>
-  </parent>
-
-  <artifactId>org.jacoco.tests</artifactId>
-  <packaging>pom</packaging>
-
-  <name>JaCoCo :: Tests</name>
-
-  <modules>
-    <module>../org.jacoco.core.test</module>
-    <module>../org.jacoco.report.test</module>
-    <module>../org.jacoco.agent.rt.test</module>
-    <module>../org.jacoco.agent.test</module>
-    <module>../org.jacoco.ant.test</module>
-    <module>../jacoco-maven-plugin.test</module>
-
-    <module>../gw.coverage.test</module>
-  </modules>
-
-  <properties>
-    <maven.deploy.skip>true</maven.deploy.skip>
-    <maven.javadoc.skip>true</maven.javadoc.skip>
-  </properties>
-
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-
-    <plugins>
-      <plugin>
+    <parent>
         <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <configuration>
-          <exclClassLoaders>sun.reflect.DelegatingClassLoader:org.jacoco.core.test.TargetLoader</exclClassLoaders>
-          <sessionId>${project.artifactId}</sessionId>
-          <includes>
-            <include>${jacoco.includes}</include>
-          </includes>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+        <artifactId>org.jacoco.build</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.build</relativePath>
+    </parent>
+
+    <artifactId>org.jacoco.tests</artifactId>
+    <packaging>pom</packaging>
+
+    <name>JaCoCo :: Tests</name>
+
+    <modules>
+        <module>../org.jacoco.core.test</module>
+        <module>../org.jacoco.report.test</module>
+        <module>../org.jacoco.agent.rt.test</module>
+        <module>../org.jacoco.agent.test</module>
+        <module>../org.jacoco.ant.test</module>
+        <module>../jacoco-maven-plugin.test</module>
+
+        <module>../gw.coverage.test</module>
+    </modules>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <exclClassLoaders>sun.reflect.DelegatingClassLoader:org.jacoco.core.test.TargetLoader</exclClassLoaders>
+                    <sessionId>${project.artifactId}</sessionId>
+                    <includes>
+                        <include>${jacoco.includes}</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

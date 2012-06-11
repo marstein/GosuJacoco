@@ -9,55 +9,56 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.tests</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.tests</relativePath>
-  </parent>
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.tests</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.tests</relativePath>
+    </parent>
 
-  <artifactId>org.jacoco.ant.test</artifactId>
+    <artifactId>org.jacoco.ant.test</artifactId>
 
-  <name>JaCoCo :: Test :: Ant</name>
+    <name>JaCoCo :: Test :: Ant</name>
 
-  <properties>
-    <jacoco.includes>org.jacoco.ant.*</jacoco.includes>
-  </properties>
+    <properties>
+        <jacoco.includes>org.jacoco.ant.*</jacoco.includes>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.jacoco.ant-nodeps</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant-antunit</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant-junit</artifactId>
-      <version>${ant.version}</version>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.ant-nodeps</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-antunit</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-junit</artifactId>
+            <version>${ant.version}</version>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <basedir>${project.build.outputDirectory}/org/jacoco/ant</basedir>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <basedir>${project.build.outputDirectory}/org/jacoco/ant</basedir>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

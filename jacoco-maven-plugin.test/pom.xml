@@ -9,60 +9,61 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.tests</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.tests</relativePath>
-  </parent>
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.tests</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.tests</relativePath>
+    </parent>
 
-  <artifactId>jacoco-maven-plugin.test</artifactId>
-  <packaging>jar</packaging>
+    <artifactId>jacoco-maven-plugin.test</artifactId>
+    <packaging>jar</packaging>
 
-  <name>JaCoCo :: Test :: Maven Plugin</name>
+    <name>JaCoCo :: Test :: Maven Plugin</name>
 
-  <properties>
-    <!-- Enable recording of coverage during execution of maven-invoker-plugin -->
-    <jacoco.propertyName>invoker.mavenOpts</jacoco.propertyName>
-    <jacoco.includes>org.jacoco.maven.*</jacoco.includes>
-  </properties>
+    <properties>
+        <!-- Enable recording of coverage during execution of maven-invoker-plugin -->
+        <jacoco.propertyName>invoker.mavenOpts</jacoco.propertyName>
+        <jacoco.includes>org.jacoco.maven.*</jacoco.includes>
+    </properties>
 
-  <build>
-    <plugins>
-      <plugin>
-        <!-- To run with different Maven versions use -Dinvoker.mavenHome -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-invoker-plugin</artifactId>
-        <configuration>
-          <skipInvocation>true</skipInvocation>
-          <projectsDirectory>it</projectsDirectory>
-          <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-          <pomIncludes>
-            <pomInclude>*/pom.xml</pomInclude>
-          </pomIncludes>
-          <postBuildHookScript>verify</postBuildHookScript>
-          <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-          <goals>
-            <goal>clean</goal>
-            <goal>install</goal>
-          </goals>
-          <settingsFile>it/settings.xml</settingsFile>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <!--
-              Don't use goal "install", because first of all - we don't need it,
-              and it causes failure of deployment - see http://jira.codehaus.org/browse/MINVOKER-107
-              -->
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <!-- To run with different Maven versions use -Dinvoker.mavenHome -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-invoker-plugin</artifactId>
+                <configuration>
+                    <skipInvocation>true</skipInvocation>
+                    <projectsDirectory>it</projectsDirectory>
+                    <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+                    <pomIncludes>
+                        <pomInclude>*/pom.xml</pomInclude>
+                    </pomIncludes>
+                    <postBuildHookScript>verify</postBuildHookScript>
+                    <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+                    <goals>
+                        <goal>clean</goal>
+                        <goal>install</goal>
+                    </goals>
+                    <settingsFile>it/settings.xml</settingsFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <!--
+                            Don't use goal "install", because first of all - we don't need it,
+                            and it causes failure of deployment - see http://jira.codehaus.org/browse/MINVOKER-107
+                            -->
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

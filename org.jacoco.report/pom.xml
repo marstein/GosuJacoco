@@ -9,21 +9,22 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.build</artifactId>
-    <version>0.5.7.gw.3-SNAPSHOT</version>
-    <relativePath>../org.jacoco.build</relativePath>
-  </parent>
+    <parent>
+        <groupId>org.jacoco</groupId>
+        <artifactId>org.jacoco.build</artifactId>
+        <version>0.5.7.gw.4-SNAPSHOT</version>
+        <relativePath>../org.jacoco.build</relativePath>
+    </parent>
 
-  <artifactId>org.jacoco.report</artifactId>
+    <artifactId>org.jacoco.report</artifactId>
 
 
-  <name>JaCoCo :: Report</name>
-  <description>JaCoCo Reporting</description>
+    <name>JaCoCo :: Report</name>
+    <description>JaCoCo Reporting</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -31,14 +32,14 @@
     </properties>
 
     <!-- Note that Tycho doesn't use those dependencies, but we need to declare them for consumers -->
-  <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.jacoco.core</artifactId>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.jacoco.core</artifactId>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-  </build>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+    </build>
 </project>
