@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for i in $( /bin/ls -1 ~/jacoco/bin/*.jar )
+do
+    CP=$CP:$i
+done
+
+# Possible options:
+# -createTables -branch e-pr-core -changelist 420000 -execfile C:/Users/mstein/Desktop/jc-coverage-gitmo-plv3unit.exec 
+# -classesdir "P:/eng/emerald/pl/ready/merge/build/px/war/WEB-INF/eclipse/plugins/pl-1.0-SNAPSHOT.jar" -suite plv3unit 
+# -jdbc "jdbc:sqlserver://devdb3:2012;DatabaseName=msteinpx;User=sa;Password=Gw_123" P:/eng/emerald/pl/ready/merge/gitmo/results
+
+java -cp ".:$CP" gw.jacoco.sqlreport.SQLReportGenerator $*

@@ -1,0 +1,46 @@
+#!/bin/bash
+# http://stackoverflow.com/questions/6593531/running-a-limited-number-of-child-processes-in-parallel-in-bash
+
+set -o monitor 
+# means: run background processes in a separate processes...
+trap add_next_job CHLD 
+# execute add_next_job when we receive a child complete signal
+
+todo_array=($(find "$1" -type f -name "$2" )) # places output into an array
+
+if [[ ${#todo_array[*]} -eq 0 ]]
+then
+    echo "no of jobs: " ${#todo_array[*]}
+    exit 
+fi
+
+index=0
+max_jobs=17
+
+function add_next_job {
+    # if still jobs to do then add one
+    if [[ $index -lt ${#todo_array[*]} ]]
+    # the hash in the if is not a comment - rather it's bash awkward way of getting its length
+    then
+        echo "adding job $index, ${todo_array[$index]}"
+        do_job ${todo_array[$index]} & 
+        # replace the line above with the command you want
+        index=$(($index+1))
+    fi
+}
+
+function do_job {
+    echo "starting job $1"
+    ~/jacoco/bin/sqlreport -branch e-pr-merge -changelist 473599 -runDate '2012-06-11' -execfile $1  -classesdir /gitmo/auto/instance5/configenv/platform/pl/target/pl-1.0-SNAPSHOT.jar -suite $( basename $1 .exec | sed s/-coverage// ) -jdbc "jdbc:sqlserver://devdb3:2012;DatabaseName=msteinpx;User=sa;Password=Gw_123" /gitmo/auto/instance5/results/
+    mv $1 $( dirname $1 )/done
+}
+
+# Add initial set of jobs. When one finishes it will be replaced by a new one.
+while [[ $index -lt $max_jobs && $index -lt ${#todo_array[*]} ]]
+do
+    add_next_job
+done
+
+# wait for all jobs to complete
+wait
+echo "done"
