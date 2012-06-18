@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in $( /bin/ls -1 ~/jacoco/bin/*.jar )
+for i in ~/jacoco/bin/*.jar
 do
     CP=$CP:$i
 done
