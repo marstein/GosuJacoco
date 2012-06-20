@@ -67,7 +67,7 @@ public class CoverageRunSummary extends CoverageRun {
    *
    * @return a new coverage summary with the subtracted averages and the AND NOT bits.
    */
-  public CoverageRunSummary compareWith(CoverageRunSummary otherRun, String comparisonTitle) {
+  public CoverageRunSummary subtract(CoverageRunSummary otherRun, String comparisonTitle) {
     if (this.runsAdded == 1) {
       logger.error("Trying to compare an empty summary " + this.toString() + "with " + otherRun.toString());
       System.err.println("Is there no data in the database for " + title + "? Comparing an empty summary " + toString());
@@ -90,9 +90,8 @@ public class CoverageRunSummary extends CoverageRun {
     summary.methodMissed = methodMissed - otherRun.methodMissed;
     summary.methodCovered = methodCovered - otherRun.methodCovered;
     summary.runsAdded = runsAdded + otherRun.runsAdded;
-    summary.coveredLineSet = new CoverageLineSet(getCoveredLineSet());
-    summary.coveredLineSet.or(getCoveredLineSet()); // copy this.coveredlineset
-    summary.coveredLineSet.andNot(otherRun.getCoveredLineSet());
+    summary.coveredLineSet = new CoverageLineSet(otherRun.getCoveredLineSet());
+    summary.coveredLineSet.andNot(getCoveredLineSet());
 
     return summary;
   }
@@ -148,7 +147,7 @@ public class CoverageRunSummary extends CoverageRun {
             ", methodCovered=" + methodCovered +
             ", runsAdded=" + runsAdded +
             ", coveredLineSet=\n" + coveredLineSet +
-            "}";
+            "}\n";
   }
 
   public boolean isEmpty() {

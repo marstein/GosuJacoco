@@ -40,7 +40,7 @@ public class CoverageAnalysis {
         nonPLRuns.addRun(coverageRun);
       }
     }
-    return nonPLRuns.compareWith(thePLRuns, "pl - non_pl");
+    return thePLRuns.subtract(nonPLRuns, "pl - non_pl");
   }
 
   @Override
@@ -49,7 +49,7 @@ public class CoverageAnalysis {
             "\ncoveredFile=" + coveredFile + ", " +
             "\nnonPLCoverage=" + nonPLRuns.toString() + ", " +
             "\nPLCoverage=" + thePLRuns.toString() + ", " +
-            "\nPL-nonPL=" + thePLRuns.compareWith(nonPLRuns, "comparison pl-nonpl").toString() +
+            "\nPL-nonPL=" + thePLRuns.subtract(nonPLRuns, "comparison pl-nonpl").toString() +
             "}\n"
             ;
   }

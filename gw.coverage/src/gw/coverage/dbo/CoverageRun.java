@@ -122,15 +122,15 @@ public class CoverageRun {
   }
 
   public void setBranch(String branch) {
-    this.branch = branch;
+    this.branch = branch.intern();
   }
 
   public void setChangelist(String changelist) {
-    this.changelist = changelist;
+    this.changelist = changelist.intern();
   }
 
   public void setSuite(String suite) {
-    this.suite = suite;
+    this.suite = suite.intern();
   }
 
   public void setSuiteRunDate(Date suiteRunDate) {
@@ -199,6 +199,6 @@ public class CoverageRun {
             ", methodMissed=" + methodMissed +
             ", methodCovered=" + methodCovered +
             ", lineCoverage=" + lineCoverage +
-            '}';
+            "}\n";
   }
 }
