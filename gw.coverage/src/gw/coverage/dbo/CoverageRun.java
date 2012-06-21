@@ -15,25 +15,25 @@ public class CoverageRun {
 
   private Date suiteRunDate;
 
-  Integer instructionMissed;
+  int instructionMissed;
 
-  Integer instructionCovered;
+  int instructionCovered;
 
-  Integer branchMissed;
+  int branchMissed;
 
-  Integer branchCovered;
+  int branchCovered;
 
-  Integer lineMissed;
+  int lineMissed;
 
-  Integer lineCovered;
+  int lineCovered;
 
-  Integer complexityMissed;
+  int complexityMissed;
 
-  Integer complexityCovered;
+  int complexityCovered;
 
-  Integer methodMissed;
+  int methodMissed;
 
-  Integer methodCovered;
+  int methodCovered;
 
   private byte[] lineCoverage;
 
@@ -41,8 +41,8 @@ public class CoverageRun {
   }
 
   public CoverageRun(String branch, String changelist, String suite, Date suiteRunDate,
-                     Integer instructionMissed, Integer instructionCovered, Integer branchMissed, Integer branchCovered, Integer lineMissed,
-                     Integer lineCovered, Integer complexityMissed, Integer complexityCovered, Integer methodMissed, Integer methodCovered,
+                     int instructionMissed, int instructionCovered, int branchMissed, int branchCovered, int lineMissed,
+                     int lineCovered, int complexityMissed, int complexityCovered, int methodMissed, int methodCovered,
                      Object lineCoverage) {
     this.branch = branch;
     this.changelist = changelist;
@@ -77,43 +77,43 @@ public class CoverageRun {
     return suiteRunDate;
   }
 
-  public Integer getInstructionMissed() {
+  public int getInstructionMissed() {
     return instructionMissed;
   }
 
-  public Integer getInstructionCovered() {
+  public int getInstructionCovered() {
     return instructionCovered;
   }
 
-  public Integer getBranchMissed() {
+  public int getBranchMissed() {
     return branchMissed;
   }
 
-  public Integer getBranchCovered() {
+  public int getBranchCovered() {
     return branchCovered;
   }
 
-  public Integer getLineMissed() {
+  public int getLineMissed() {
     return lineMissed;
   }
 
-  public Integer getLineCovered() {
+  public int getLineCovered() {
     return lineCovered;
   }
 
-  public Integer getComplexityMissed() {
+  public int getComplexityMissed() {
     return complexityMissed;
   }
 
-  public Integer getComplexityCovered() {
+  public int getComplexityCovered() {
     return complexityCovered;
   }
 
-  public Integer getMethodMissed() {
+  public int getMethodMissed() {
     return methodMissed;
   }
 
-  public Integer getMethodCovered() {
+  public int getMethodCovered() {
     return methodCovered;
   }
 
@@ -137,43 +137,43 @@ public class CoverageRun {
     this.suiteRunDate = suiteRunDate;
   }
 
-  public void setInstructionMissed(Integer instructionMissed) {
+  public void setInstructionMissed(int instructionMissed) {
     this.instructionMissed = instructionMissed;
   }
 
-  public void setInstructionCovered(Integer instructionCovered) {
+  public void setInstructionCovered(int instructionCovered) {
     this.instructionCovered = instructionCovered;
   }
 
-  public void setBranchMissed(Integer branchMissed) {
+  public void setBranchMissed(int branchMissed) {
     this.branchMissed = branchMissed;
   }
 
-  public void setBranchCovered(Integer branchCovered) {
+  public void setBranchCovered(int branchCovered) {
     this.branchCovered = branchCovered;
   }
 
-  public void setLineMissed(Integer lineMissed) {
+  public void setLineMissed(int lineMissed) {
     this.lineMissed = lineMissed;
   }
 
-  public void setLineCovered(Integer lineCovered) {
+  public void setLineCovered(int lineCovered) {
     this.lineCovered = lineCovered;
   }
 
-  public void setComplexityMissed(Integer complexityMissed) {
+  public void setComplexityMissed(int complexityMissed) {
     this.complexityMissed = complexityMissed;
   }
 
-  public void setComplexityCovered(Integer complexityCovered) {
+  public void setComplexityCovered(int complexityCovered) {
     this.complexityCovered = complexityCovered;
   }
 
-  public void setMethodMissed(Integer methodMissed) {
+  public void setMethodMissed(int methodMissed) {
     this.methodMissed = methodMissed;
   }
 
-  public void setMethodCovered(Integer methodCovered) {
+  public void setMethodCovered(int methodCovered) {
     this.methodCovered = methodCovered;
   }
 
