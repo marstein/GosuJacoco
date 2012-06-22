@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/bin/bash
 
 for i in ~/jacoco/bin/*.jar
@@ -7,3 +8,14 @@ done
 
 # -b branch -c changelist -a apps cc pc -f file -runDate -jdbc
 java -Xmx5000M -cp ".$CP" gw.jacoco.sourcereport.SourceReport $*
+=======
+#!/bin/bash
+
+for i in ~/jacoco/bin/*.jar
+do
+    CP=$CP:$i
+done
+
+# -b branch -c changelist -a apps cc pc -f file -runDate -jdbc
+java -cp ".:$CP" gw.jacoco.sourcereport.SourceReport $*
+>>>>>>> 050079e4532c2f4a10932d79d55170a4ed94a2e2
