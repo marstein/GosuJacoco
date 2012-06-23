@@ -35,11 +35,11 @@ public class CoveredFile {
   }
 
   public void setPackageName(String packageName) {
-    this.packageName = packageName;
+    this.packageName = packageName.intern();
   }
 
   public void setFileName(String fileName) {
-    this.fileName = fileName;
+    this.fileName = fileName.intern();
   }
 
   public void setRunList(List<CoverageRun> runList) {
@@ -52,7 +52,7 @@ public class CoveredFile {
             "packageName='" + packageName + '\'' +
             ", fileName='" + fileName + '\'' +
             ", runList=" + runList +
-            '}';
+            "}\n";
   }
 
   @Override

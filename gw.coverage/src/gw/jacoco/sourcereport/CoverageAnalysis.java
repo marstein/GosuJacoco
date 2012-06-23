@@ -19,8 +19,6 @@ public class CoverageAnalysis {
 
   public CoverageAnalysis(SourceReport sourceReport, CoveredFile coveredFile) {
     this.coveredFile = coveredFile;
-    nonPLRuns = new CoverageRunSummary(coveredFile, "non_PL");
-    thePLRuns = new CoverageRunSummary(coveredFile, "PL");
   }
 
   public CoverageRunSummary getNonPLRuns() {
@@ -32,6 +30,8 @@ public class CoverageAnalysis {
   }
 
   public CoverageRunSummary analyze() {
+    thePLRuns = new CoverageRunSummary("PL");
+    nonPLRuns = new CoverageRunSummary("non_PL");
     // Take the non-PL suites and OR the line coverage. Then do the same for the PL classes.
     for (CoverageRun coverageRun : coveredFile.getRunList()) {
       if (coverageRun.getSuite().toLowerCase().startsWith("pl")) {
@@ -40,16 +40,16 @@ public class CoverageAnalysis {
         nonPLRuns.addRun(coverageRun);
       }
     }
-    return nonPLRuns.compareWith(thePLRuns, "pl - non_pl");
+    return thePLRuns.subtract(nonPLRuns, "pl - non_pl");
   }
 
   @Override
   public String toString() {
     return "CoverageAnalysis{" +
             "\ncoveredFile=" + coveredFile + ", " +
-            "\nnonPLCoverage=" + nonPLRuns.toString() + ", " +
-            "\nPLCoverage=" + thePLRuns.toString() + ", " +
-            "\nPL-nonPL=" + thePLRuns.compareWith(nonPLRuns, "comparison pl-nonpl").toString() +
+            "\nnonPLCoverage=" + (nonPLRuns == null ? "null" : nonPLRuns.toString()) + ", " +
+            "\nPLCoverage=" + (thePLRuns == null ? "null" : thePLRuns.toString()) + ", " +
+            "\nPL-nonPL=" + (thePLRuns == null ? "null" : thePLRuns.subtract(nonPLRuns, "comparison pl-nonpl").toString()) +
             "}\n"
             ;
   }

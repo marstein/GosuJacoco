@@ -8,3 +8,4 @@ done
 # wants 64 bit java
 # -b branch -c changelist -a apps cc pc -f file -runDate -jdbc
 java -Xmx4500M -cp ".:$CP" gw.jacoco.sourcereport.SourceReport $*
+

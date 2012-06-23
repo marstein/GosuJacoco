@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 public class CoverageRunSummary extends CoverageRun {
 
   // to calculate averages.
-  int runsAdded = 1;
+  int runsAdded;
 
-  public CoveredFile coveredFile;
+  //  public CoveredFile coveredFile;
   public String title;
 
-  static public CoverageRunSummary EMPTY_SUMMARY = new CoverageRunSummary(new CoveredFile("no package", "no file"), "EMPTY SUMMARY");
+  static public CoverageRunSummary EMPTY_SUMMARY = new CoverageRunSummary("EMPTY SUMMARY");
 
   public CoverageLineSet getCoveredLineSet() {
     return coveredLineSet;
@@ -25,20 +25,10 @@ public class CoverageRunSummary extends CoverageRun {
 
   private static Logger logger = LoggerFactory.getLogger("SQLReportGenerator");
 
-  public CoverageRunSummary(CoveredFile coveredFile, String title) {
-    this.coveredFile = coveredFile;
+  public CoverageRunSummary(String title) {
     this.title = title;
-    this.instructionMissed = 0;
-    this.instructionCovered = 0;
-    this.branchMissed = 0;
-    this.branchCovered = 0;
-    this.lineMissed = 0;
-    this.lineCovered = 0;
-    this.complexityMissed = 0;
-    this.complexityCovered = 0;
-    this.methodMissed = 0;
-    this.methodCovered = 0;
-    this.coveredLineSet = new CoverageLineSet();
+    coveredLineSet = new CoverageLineSet();
+    runsAdded = 0;
   }
 
   /**
@@ -49,16 +39,20 @@ public class CoverageRunSummary extends CoverageRun {
   public void addRun(CoverageRun coverageRun) {
     getCoveredLineSet().or(CoverageLineSet.fromByteArray(coverageRun.getLineCoverage()));
 
-    instructionCovered += coverageRun.instructionCovered/runsAdded;
-    instructionMissed += coverageRun.instructionMissed/runsAdded;
-    branchMissed += coverageRun.branchMissed/runsAdded;
-    branchCovered += coverageRun.branchCovered/runsAdded;
-    lineMissed += coverageRun.lineMissed/runsAdded;
-    lineCovered += coverageRun.lineCovered/runsAdded;
-    complexityMissed += coverageRun.complexityMissed/runsAdded;
-    complexityCovered += coverageRun.complexityCovered/runsAdded;
-    methodMissed += coverageRun.methodMissed/runsAdded;
-    methodCovered += coverageRun.methodCovered/runsAdded;
+    // value = value*n/(n + 1) + newvalue/(n + 1)
+
+    int runsAddedPlus = runsAdded + 1;
+    logger.trace(title + ": adding coverageRun.instructionCovered " + instructionCovered + " to " + instructionCovered + " with " + runsAdded + " so far");
+    instructionCovered = (instructionCovered*runsAdded + coverageRun.instructionCovered)/runsAddedPlus;
+    instructionMissed = (instructionMissed*runsAdded + coverageRun.instructionMissed)/runsAddedPlus;
+    branchMissed = (branchMissed*runsAdded + coverageRun.branchMissed)/runsAddedPlus;
+    branchCovered = (branchCovered*runsAdded + coverageRun.branchCovered)/runsAddedPlus;
+    lineMissed = (lineMissed*runsAdded + coverageRun.lineMissed)/runsAddedPlus;
+    lineCovered = (lineCovered*runsAdded + coverageRun.lineCovered)/runsAddedPlus;
+    complexityMissed = (complexityMissed*runsAdded + coverageRun.complexityMissed)/runsAddedPlus;
+    complexityCovered = (complexityCovered*runsAdded + coverageRun.complexityCovered)/runsAddedPlus;
+    methodMissed = (methodMissed*runsAdded + coverageRun.methodMissed)/runsAddedPlus;
+    methodCovered = (methodCovered*runsAdded + coverageRun.methodCovered)/runsAddedPlus;
     runsAdded += 1;
   }
 
@@ -67,7 +61,7 @@ public class CoverageRunSummary extends CoverageRun {
    *
    * @return a new coverage summary with the subtracted averages and the AND NOT bits.
    */
-  public CoverageRunSummary compareWith(CoverageRunSummary otherRun, String comparisonTitle) {
+  public CoverageRunSummary subtract(CoverageRunSummary otherRun, String comparisonTitle) {
     if (this.runsAdded == 1) {
       logger.error("Trying to compare an empty summary " + this.toString() + "with " + otherRun.toString());
       System.err.println("Is there no data in the database for " + title + "? Comparing an empty summary " + toString());
@@ -78,7 +72,8 @@ public class CoverageRunSummary extends CoverageRun {
       System.err.println("Is there no data in the database for " + otherRun.title + "? Comparing an empty summary " + otherRun.toString());
       return CoverageRunSummary.EMPTY_SUMMARY;
     }
-    CoverageRunSummary summary = new CoverageRunSummary(this.coveredFile, comparisonTitle);
+//    CoverageRunSummary summary = new CoverageRunSummary(this.coveredFile, comparisonTitle);
+    CoverageRunSummary summary = new CoverageRunSummary(comparisonTitle);
     summary.instructionMissed = instructionMissed - otherRun.instructionMissed;
     summary.instructionCovered = instructionCovered - otherRun.instructionCovered;
     summary.branchMissed = branchMissed - otherRun.branchMissed;
@@ -90,9 +85,8 @@ public class CoverageRunSummary extends CoverageRun {
     summary.methodMissed = methodMissed - otherRun.methodMissed;
     summary.methodCovered = methodCovered - otherRun.methodCovered;
     summary.runsAdded = runsAdded + otherRun.runsAdded;
-    summary.coveredLineSet = new CoverageLineSet(getCoveredLineSet());
-    summary.coveredLineSet.or(getCoveredLineSet()); // copy this.coveredlineset
-    summary.coveredLineSet.andNot(otherRun.getCoveredLineSet());
+    summary.coveredLineSet = new CoverageLineSet(otherRun.getCoveredLineSet());
+    summary.coveredLineSet.andNot(getCoveredLineSet());
 
     return summary;
   }
@@ -112,11 +106,12 @@ public class CoverageRunSummary extends CoverageRun {
             "complexityCovered, " +
             "methodMissed, " +
             "methodCovered, " +
-            "line coverage difference CoveredLineSet cardinality";
+            "runs" + ", " +
+            "line coverage difference cardinality";
   }
 
 
-  public String toCSV() {
+  public String toCSV(CoveredFile coveredFile) {
     return title + ", " +
             coveredFile.getPackageName() + ", " +
             coveredFile.getFileName() + ", " +
@@ -130,6 +125,7 @@ public class CoverageRunSummary extends CoverageRun {
             complexityCovered + ", " +
             methodMissed + ", " +
             methodCovered + ", " +
+            runsAdded + ", " +
             getCoveredLineSet().cardinality();
   }
 
@@ -147,8 +143,8 @@ public class CoverageRunSummary extends CoverageRun {
             ", methodMissed=" + methodMissed +
             ", methodCovered=" + methodCovered +
             ", runsAdded=" + runsAdded +
-            ", coveredLineSet=\n" + coveredLineSet +
-            "}";
+            ", coveredLineSet=\n" + (coveredLineSet == null ? "null" : coveredLineSet.toString()) +
+            "}\n";
   }
 
   public boolean isEmpty() {
@@ -169,10 +165,10 @@ public class CoverageRunSummary extends CoverageRun {
     if (runsAdded != summary.runsAdded) {
       return false;
     }
-    if (coveredFile != null ? !coveredFile.equals(summary.coveredFile) : summary.coveredFile != null) {
+    if (coveredLineSet != null ? !coveredLineSet.equals(summary.coveredLineSet) : summary.coveredLineSet != null) {
       return false;
     }
-    if (title != null ? !title.equals(summary.title) : summary.title != null) {
+    if (!title.equals(summary.title)) {
       return false;
     }
 
@@ -182,8 +178,8 @@ public class CoverageRunSummary extends CoverageRun {
   @Override
   public int hashCode() {
     int result = runsAdded;
-    result = 31*result + (coveredFile != null ? coveredFile.hashCode() : 0);
-    result = 31*result + (title != null ? title.hashCode() : 0);
+    result = 31*result + title.hashCode();
+    result = 31*result + (coveredLineSet != null ? coveredLineSet.hashCode() : 0);
     return result;
   }
 }

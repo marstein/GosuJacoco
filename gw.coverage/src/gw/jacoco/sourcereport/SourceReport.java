@@ -71,21 +71,21 @@ public class SourceReport {
     logger.info("Reporting with Parameters" + toString());
     initializeIBatis();
     System.out.println(CoverageRunSummary.toCSVTitle());
-    for (CoveredFile coveredFile : queryIbatis()) {
+    for (CoveredFile coveredFile : queryDatabase()) {
       CoverageAnalysis coverageAnalysis = new CoverageAnalysis(this, coveredFile);
       CoverageRunSummary summary = coverageAnalysis.analyze();
       if (summary.isEmpty()) {
         continue;
       }
       logger.debug(coverageAnalysis.toString());
-      System.out.println(coverageAnalysis.getNonPLRuns().toCSV());
-      System.out.println(coverageAnalysis.getThePLRuns().toCSV());
-      System.out.println(summary.toCSV());
+      System.out.println(coverageAnalysis.getNonPLRuns().toCSV(coveredFile));
+      System.out.println(coverageAnalysis.getThePLRuns().toCSV(coveredFile));
+      System.out.println(summary.toCSV(coveredFile));
     }
   }
 
 
-  private List<CoveredFile> queryIbatis() {
+  private List<CoveredFile> queryDatabase() {
     SqlSession session = null;
     List<CoveredFile> coveredFileList = null;
     try {
