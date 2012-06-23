@@ -6,6 +6,9 @@ set -o monitor
 trap add_next_job CHLD 
 # execute add_next_job when we receive a child complete signal
 
+RESULTDIR=~/coverage-results
+mkdir -p "$RESULTDIR"
+
 # names of suites
 declare -a todo_array
 # max_suites slots for processes with their own num
@@ -14,15 +17,15 @@ declare -a job_num
 todo_array=($*) # places output into an array
 if [[ ${#todo_array[*]} -eq 0 ]]
 then
-    echo "no of jobs: " ${#todo_array[*]}
+    echo "no of jobs: ${#todo_array[*]}"
     exit 
 fi
 
 # change list number. SET THIS!
-change=475687
+change=476788
 
 index=0
-max_jobs=15
+max_jobs=19
 
 # param slot#
 function free_slot {
@@ -73,7 +76,6 @@ function add_next_job {
 	    j=$(( j+1 ))
 	done
 	reserve_slot $num "${todo_array[$index]}"
-#        ( do_job ${todo_array[$index]} $num; echo "Finishing num $num suite $suite"; free_slot $num ) &
         do_job ${todo_array[$index]} $num &
         index=$(($index+1))
     fi
@@ -85,14 +87,12 @@ function do_job {
     local suite=$1
     echo ">>>> Starting suite $suite in num $num"
 
-    set -x
     # skip setup after first
-    if [ $index -gt 1 ]; then skip="-skipsetup"; fi
+    if [ $index -gt 1 ]; then GITMO="gitmo-offline"; else GITMO=gitmo; fi
 
-    gitmo -num $num -branch eng_emerald_pl_ready_merge -change $change -suite $suite -coverage -perm 399 -mem 1399 $skip
-    cp /gitmo/auto/instance${num}/results/*.exec ~/coverage-results
+    $GITMO -num $num -branch eng_emerald_pl_ready_merge -change $change -suite $suite -coverage -perm 399 -mem 1399 $skip
+    cp /gitmo/auto/instance${num}/results/*.exec "${RESULTDIR}"
     free_slot $num
-    set +x
 }
 
 
