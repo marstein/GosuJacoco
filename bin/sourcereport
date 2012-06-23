@@ -5,5 +5,6 @@ do
     CP=$CP:$i
 done
 
+# wants 64 bit java
 # -b branch -c changelist -a apps cc pc -f file -runDate -jdbc
-java -cp ".:$CP" gw.jacoco.sourcereport.SourceReport $*
+java -Xmx4500M -cp ".:$CP" gw.jacoco.sourcereport.SourceReport $*
