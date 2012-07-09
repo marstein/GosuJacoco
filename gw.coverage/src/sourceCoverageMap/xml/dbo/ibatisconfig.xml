@@ -9,12 +9,26 @@
         <typeAlias alias="Coveredfile" type="gw.coverage.dbo.CoveredFile"/>
     </typeAliases>
 
-    <environments default="development">
-        <environment id="development">
+    <environments default="mstein">
+        <environment id="devdb3">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
                 <property name="driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
                 <property name="url" value="jdbc:sqlserver://devdb3:2012;DatabaseName=msteinpx;User=sa;Password=Gw_123"/>
+            </dataSource>
+        </environment>
+        <environment id="mstein">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+                <property name="url" value="jdbc:sqlserver://mstein-t3500:1433;databaseName=Coverage;user=sa;password=Guidewire123"/>
+            </dataSource>
+        </environment>
+        <environment id="test">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+                <property name="url" value="jdbc:h2:~/coverage-test.db;MODE=MSSQLServer"/>
             </dataSource>
         </environment>
     </environments>

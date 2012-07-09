@@ -34,8 +34,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +52,7 @@ public class SQLReportGenerator {
   private File projectDirectory;
   private List<File> classesDirectories = new ArrayList<File>();
   private List<File> sourceDirectories = new ArrayList<File>();
-  private String connectString;
+  private String dbEnv;
 
   private ExecutionDataStore executionDataStore;
   private SessionInfoStore sessionInfoStore;
@@ -79,6 +77,7 @@ public class SQLReportGenerator {
     this.suiteRunDate = new Date(projectDirectory.lastModified());
     this.branchName = "branch";
     this.changelist = "cccccc";
+    this.dbEnv = "devdb3";
   }
 
   public SQLReportGenerator withExecutionDataFile(File executionDataFile) {
@@ -111,10 +110,6 @@ public class SQLReportGenerator {
     return this;
   }
 
-  public SQLReportGenerator withJDBCConnection(String jdbcConnectionString) {
-    this.connectString = jdbcConnectionString;
-    return this;
-  }
 
   /**
    * Create the report.
@@ -138,7 +133,7 @@ public class SQLReportGenerator {
   }
 
   private void createReport(final IBundleCoverage bundleCoverage) throws IOException {
-    sessionFactory = initializeIBatis();
+    sessionFactory = initializeIBatis(dbEnv);
     SqlSession session = null;
 
     try {
@@ -176,15 +171,15 @@ public class SQLReportGenerator {
 
   private SqlSessionFactory sessionFactory;
 
-  protected static SqlSessionFactory initializeIBatis() {
+  protected static SqlSessionFactory initializeIBatis(String dbEnv) {
     SqlSessionFactory factory;
-    Reader resourceAsReader;
+    Reader reader;
     try {
-      resourceAsReader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
-      factory = new SqlSessionFactoryBuilder().build(resourceAsReader);
-      resourceAsReader.close();
+      reader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
+      factory = new SqlSessionFactoryBuilder().build(reader, dbEnv);
+      reader.close();
     } catch (IOException e) {
-      throw new IllegalStateException("could not initialize ibatis", e);
+      throw new IllegalStateException("Could not initialize ibatis!", e);
     }
     return factory;
   }
@@ -234,7 +229,7 @@ public class SQLReportGenerator {
     }
 
     if (commandLineArguments.createTables) {
-      createDBTables(commandLineArguments.jdbcConnection);
+      createDBTables(commandLineArguments.dbEnv);
     }
 
     if (commandLineArguments.directory.size() != 1) {
@@ -247,7 +242,7 @@ public class SQLReportGenerator {
       generator.withBranchName(commandLineArguments.branchName)
               .withChangelist(commandLineArguments.changeList)
               .withExecutionDataFile(commandLineArguments.execFile)
-              .withJDBCConnection(commandLineArguments.jdbcConnection)
+              .withDbEnv(commandLineArguments.dbEnv)
               .withSuiteName(commandLineArguments.suiteName)
               .withSuiteRunDate(commandLineArguments.suiteRunDate);
       for (File cpElement : commandLineArguments.classesDirs) {
@@ -257,23 +252,19 @@ public class SQLReportGenerator {
     }
   }
 
+  private SQLReportGenerator withDbEnv(String dbEnv) {
+    this.dbEnv = dbEnv;
+    return this;
+  }
+
   /*
   Create the database tables for MS SQL Server. Uses vbinary. The table is used in ClassRowWriter.writeRow().
   It would improve the size of the written table if the dimensions (branch, suite, package, etc) were in separate
   tables that point into a fact table containing the measurements.
    */
-  static void createDBTables(String connectString) {
-    SqlSessionFactory sessionFactory = initializeIBatis();
-    SqlSession session;
-    if (connectString != null) {
-      try {
-        session = sessionFactory.openSession(DriverManager.getConnection(connectString));
-      } catch (SQLException e) {
-        throw new IllegalStateException("ERROR opening DB connection!", e);
-      }
-    } else {
-      session = sessionFactory.openSession();
-    }
+  static void createDBTables(String dbEnv) {
+    SqlSessionFactory sessionFactory = initializeIBatis(dbEnv);
+    SqlSession session = sessionFactory.openSession();
     try {
       // Dimension tables: branch, suite, changelist, package, filename, class
       makeTable(session, "gw.coverage.dbo.CoverageMapper.createBranch");

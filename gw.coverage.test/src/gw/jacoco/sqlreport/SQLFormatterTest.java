@@ -45,7 +45,7 @@ public class SQLFormatterTest {
     String connectString = "jdbc:h2:~/sqlformattertest.db;MODE=MSSQLServer;TRACE_LEVEL_FILE=2";
     SQLReportGenerator.createDBTables(connectString);
     connection = DriverManager.getConnection(connectString);
-    sqlSession = SQLReportGenerator.initializeIBatis().openSession(connection);
+    sqlSession = SQLReportGenerator.initializeIBatis("test").openSession(connection);
 
     driver = new ReportStructureTestDriver();
     formatter = new SQLFormatter();

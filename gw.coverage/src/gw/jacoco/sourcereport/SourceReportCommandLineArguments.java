@@ -28,8 +28,8 @@ public class SourceReportCommandLineArguments {
   @Parameter(names = "-runDate", description = "suite run date YYYY/MM/DD", converter = ISO8601DateConverter.class)
   public Date suiteRunDate = null;
 
-  @Parameter(names = {"-jdbcconnection", "-jdbc"}, description = "JDBC connection string", required = false)
-  public String jdbcConnection = "no jdbc connection";
+  @Parameter(names = {"-dbenv", "-db"}, description = "Database environment as defined in ibatis config XML", required = false)
+  public String dbEnv = null;
 
   @Parameter(names = "-debug", description = "Debug mode")
   public boolean debug = false;

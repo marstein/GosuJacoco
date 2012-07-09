@@ -33,16 +33,17 @@ public class SourceReport {
   private String changelist;
   private String filePattern;
 
-  // Have to figure out how to override ibatis config.
-  private String connectString;
+  private String dbEnv;
+
+  private SqlSessionFactory sessionFactory;
+
 
   final static org.slf4j.Logger logger = LoggerFactory.getLogger(SourceReport.class);
 
   public static void main(final String[] args) throws IOException {
     final SourceReportCommandLineArguments commandLineArguments = new SourceReportCommandLineArguments();
-    JCommander commander = null;
     try {
-      commander = new JCommander(commandLineArguments, args);
+      new JCommander(commandLineArguments, args);
     } catch (ParameterException e) {
       System.err.println("Command line parameter error! " + e.toString());
       new JCommander(commandLineArguments).usage();
@@ -54,11 +55,19 @@ public class SourceReport {
     final SourceReport report = new SourceReport();
     report.withBranchName(commandLineArguments.branchName)
             .withChangelist(commandLineArguments.changeList)
-            .withJDBCConnection(commandLineArguments.jdbcConnection)
+            .withDbEnv(commandLineArguments.dbEnv)
             .withSuiteRunDate(commandLineArguments.suiteRunDate)
             .withFilePattern(commandLineArguments.filePattern)
             .withApps(commandLineArguments.apps);
     report.create();
+  }
+
+  private SourceReport withDbEnv(String dbEnv) {
+    if (dbEnv == null) {
+      dbEnv = "devdb3";
+    }
+    this.dbEnv = dbEnv;
+    return this;
   }
 
   private SourceReport withFilePattern(String filePattern) {
@@ -101,13 +110,12 @@ public class SourceReport {
     return coveredFileList;
   }
 
-  private SqlSessionFactory sessionFactory;
-
   private void initializeIBatis() {
+    // Initialize with iBatis XML config file.
     Reader resourceAsReader = null;
     try {
       resourceAsReader = Resources.getResourceAsReader("sourceCoverageMap/xml/dbo/ibatisconfig.xml");
-      sessionFactory = new SqlSessionFactoryBuilder().build(resourceAsReader);
+      sessionFactory = new SqlSessionFactoryBuilder().build(resourceAsReader, "mstein");
       resourceAsReader.close();
     } catch (IOException e) {
       throw new IllegalStateException("could not initialize ibatis", e);
@@ -141,11 +149,6 @@ public class SourceReport {
     return this;
   }
 
-  public SourceReport withJDBCConnection(String jdbcConnectionString) {
-    this.connectString = jdbcConnectionString;
-    return this;
-  }
-
   @Override
   public String toString() {
     return "SourceReport{" +
@@ -154,7 +157,7 @@ public class SourceReport {
             ", branchName='" + branchName + '\'' +
             ", changelist='" + changelist + '\'' +
             ", filePattern='" + filePattern + '\'' +
-            ", connectString='" + connectString + '\'' +
+            ", dbEnv='" + dbEnv + '\'' +
             '}';
   }
 }

@@ -28,8 +28,8 @@ public class CommandLineArguments {
   @Parameter(names = {"-changelist", "-c"}, description = "change list number; e.g. 443211")
   public String changeList = "";
 
-  @Parameter(names = {"-jdbcconnection", "-jdbc"}, description = "JDBC connection string")
-  public String jdbcConnection = null;
+  @Parameter(names = {"-dbenv", "-db"}, description = "Database environment as defined in ibatis config XML", required = false)
+  public String dbEnv = null;
 
   @Parameter(names = {"-execfile", "-e"}, description = "Jacoco execution file name", converter = FileConverter.class, required = true)
   public File execFile;
